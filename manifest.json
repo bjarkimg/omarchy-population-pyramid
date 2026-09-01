@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "bmg.population-pyramid",
+  "name": "Demographics & Population Decline",
+  "version": "1.0.0",
+  "author": "Bjarki Már",
+  "license": "MIT",
+  "description": "Interactive vertical population pyramid, 3 flag quick-picker rows, sub-replacement fertility decline tracking, and theoretical extinction horizon extrapolations per country.",
+  "homepage": "https://github.com/bjarkimg/omarchy-population-pyramid",
+  "repository": "https://github.com/bjarkimg/omarchy-population-pyramid",
+  "keywords": [
+    "demographics",
+    "population",
+    "pyramid",
+    "fertility",
+    "decline",
+    "extinction",
+    "un",
+    "statistics"
+  ],
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Population & Demographics",
+    "description": "Population decline tracker and vertical age-sex pyramid",
+    "category": "Info",
+    "defaultSection": "right",
+    "allowMultiple": false
+  }
+}
