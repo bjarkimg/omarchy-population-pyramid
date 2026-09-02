@@ -224,7 +224,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(1020))
+    contentWidth: panel.fittedContentWidth(Style.space(940))
     contentHeight: panel.fittedContentHeight(mainRow.implicitHeight)
 
     PanelKeyCatcher {
@@ -256,7 +256,7 @@ BarWidget {
         // =====================================================================
         Column {
           id: leftMainPanel
-          width: Style.space(520)
+          width: Style.space(590)
           spacing: Style.space(8)
 
           // 1. Header Bar with Country Title & Close Button
@@ -492,7 +492,7 @@ BarWidget {
         // =====================================================================
         Column {
           id: rightSidebar
-          width: Style.space(480)
+          width: Style.space(330)
           spacing: Style.space(7)
 
           // Sidebar Title Header
@@ -503,7 +503,7 @@ BarWidget {
             Text {
               anchors.left: parent.left
               anchors.verticalCenter: parent.verticalCenter
-              text: "🌍 GLOBAL DIRECTORY"
+              text: "🌍 DIRECTORY"
               color: Color.accent
               font.family: Style.font.family
               font.pixelSize: Style.font.body
@@ -525,7 +525,7 @@ BarWidget {
           TextField {
             id: searchInput
             width: parent.width
-            placeholderText: "Search country or code (e.g. Korea, Japan, ISL)..."
+            placeholderText: "Search (e.g. Korea, ISL)..."
             text: root.searchQuery
             onTextChanged: {
               root.searchQuery = text
@@ -580,7 +580,7 @@ BarWidget {
             visible: !root.showingSearchList
             width: parent.width
             height: Style.space(465)
-            spacing: Style.space(5)
+            spacing: Style.space(4)
 
             Repeater {
               model: root.severityTiers
@@ -588,7 +588,7 @@ BarWidget {
               Column {
                 id: tierColumn
                 readonly property var tier: modelData
-                width: (parent.width - Style.space(10)) / 3
+                width: (parent.width - Style.space(8)) / 3
                 height: parent.height
                 spacing: Style.space(3)
 

@@ -29,7 +29,7 @@ Item {
     return Math.max(m * 1.18, 1.0)
   }
 
-  implicitWidth: Style.space(520)
+  implicitWidth: Style.space(590)
   implicitHeight: Style.space(200)
 
   function formatPop(val) {
@@ -82,8 +82,8 @@ Item {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         text: root.isSubReplacement
-          ? "📉 POPULATION TRAJECTORY & PATH TO ZERO (TFR " + root.tfr.toFixed(2) + " < 2.10)"
-          : "📈 100-YEAR POPULATION GROWTH TRAJECTORY (TFR " + root.tfr.toFixed(2) + " ≥ 2.10)"
+          ? "📉 TRAJECTORY & PATH TO ZERO (TFR " + root.tfr.toFixed(2) + ")"
+          : "📈 100Y GROWTH TRAJECTORY (TFR " + root.tfr.toFixed(2) + ")"
         color: root.isSubReplacement ? "#f87171" : "#4ade80"
         font.family: Style.font.family
         font.pixelSize: 10
@@ -94,8 +94,8 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         text: root.isHovered && root.hoveredYear > 0
-          ? ("Year " + root.hoveredYear + ": " + root.formatPop(root.hoveredPop))
-          : ("Hover / Drag to Scrub Years (" + root.startYear + "–" + root.endYear + ")")
+          ? ("Yr " + root.hoveredYear + ": " + root.formatPop(root.hoveredPop))
+          : ("Scrub " + root.startYear + "–" + root.endYear)
         color: root.isHovered ? Color.foreground : Color.muted
         font.family: Style.font.family
         font.pixelSize: 9
