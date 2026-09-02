@@ -222,7 +222,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(930))
+    contentWidth: panel.fittedContentWidth(Style.space(880))
     contentHeight: panel.fittedContentHeight(mainColumn.implicitHeight + Style.space(16))
 
     PanelKeyCatcher {
@@ -251,11 +251,11 @@ BarWidget {
         spacing: Style.space(8)
 
         // =====================================================================
-        // 1. TOP ROW: Left Pyramid & Stats (560px) + Right Boxed Flags (340px)
+        // 1. TOP ROW: Left Pyramid & Stats (560px) + Right Boxed Flags (290px)
         // =====================================================================
         Row {
           width: parent.width
-          spacing: Style.space(12)
+          spacing: Style.space(10)
 
           // -------------------------------------------------------------------
           // TOP LEFT: Country Header, Vital Statistics & Age-Sex Pyramid
@@ -449,11 +449,11 @@ BarWidget {
           }
 
           // -------------------------------------------------------------------
-          // TOP RIGHT: Boxed-In Flag Directory Card
+          // TOP RIGHT: Boxed-In Flag Directory Card (Shrunk to 290px)
           // -------------------------------------------------------------------
           Rectangle {
             id: topRightBox
-            width: Style.space(340)
+            width: Style.space(290)
             height: topLeftColumn.implicitHeight
             color: Qt.rgba(0.08, 0.12, 0.18, 0.75)
             border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -463,13 +463,13 @@ BarWidget {
 
             Column {
               anchors.fill: parent
-              anchors.margins: Style.space(8)
-              spacing: Style.space(6)
+              anchors.margins: Style.space(6)
+              spacing: Style.space(5)
 
               // Directory Header Bar with Close Button
               Item {
                 width: parent.width
-                height: Style.space(26)
+                height: Style.space(24)
 
                 Text {
                   anchors.left: parent.left
@@ -484,7 +484,7 @@ BarWidget {
                 Row {
                   anchors.right: parent.right
                   anchors.verticalCenter: parent.verticalCenter
-                  spacing: Style.space(6)
+                  spacing: Style.space(4)
 
                   Text {
                     anchors.verticalCenter: parent.verticalCenter
@@ -498,8 +498,8 @@ BarWidget {
                   Button {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "✕"
-                    width: Style.space(22)
-                    height: Style.space(22)
+                    width: Style.space(20)
+                    height: Style.space(20)
                     onClicked: root.close()
                   }
                 }
@@ -509,7 +509,7 @@ BarWidget {
               TextField {
                 id: searchInput
                 width: parent.width
-                placeholderText: "Search (e.g. Korea, ISL)..."
+                placeholderText: "Search country..."
                 text: root.searchQuery
                 onTextChanged: {
                   root.searchQuery = text
@@ -526,7 +526,7 @@ BarWidget {
               Rectangle {
                 visible: root.showingSearchList
                 width: parent.width
-                height: parent.height - searchInput.height - Style.space(38)
+                height: parent.height - searchInput.height - Style.space(34)
                 color: Qt.rgba(0.08, 0.12, 0.18, 0.95)
                 border.color: Color.accent
                 border.width: 1
@@ -548,7 +548,7 @@ BarWidget {
                       model: root.filteredCountries
                       Button {
                         width: parent.width
-                        height: Style.space(24)
+                        height: Style.space(22)
                         text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
                         bordered: false
                         selected: modelData.code === root.selectedCountryCode
@@ -563,8 +563,8 @@ BarWidget {
               Row {
                 visible: !root.showingSearchList
                 width: parent.width
-                height: parent.height - searchInput.height - Style.space(38)
-                spacing: Style.space(4)
+                height: parent.height - searchInput.height - Style.space(34)
+                spacing: Style.space(3)
 
                 Repeater {
                   model: root.severityTiers
@@ -572,14 +572,14 @@ BarWidget {
                   Column {
                     id: tierColumn
                     readonly property var tier: modelData
-                    width: (parent.width - Style.space(8)) / 3
+                    width: (parent.width - Style.space(6)) / 3
                     height: parent.height
                     spacing: Style.space(3)
 
                     // Tier Column Header
                     Rectangle {
                       width: parent.width
-                      height: Style.space(28)
+                      height: Style.space(26)
                       color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
                       border.color: Qt.rgba(1, 1, 1, 0.08)
                       radius: 4
@@ -593,7 +593,7 @@ BarWidget {
                           text: tierColumn.tier.dot + " " + (tierColumn.tier.key === "critical" ? "CRITICAL" : tierColumn.tier.key === "aging" ? "AGING" : "GROWTH")
                           color: tierColumn.tier.color
                           font.family: Style.font.family
-                          font.pixelSize: 9
+                          font.pixelSize: 8
                           font.bold: true
                         }
 
@@ -602,7 +602,7 @@ BarWidget {
                           text: "TFR " + tierColumn.tier.range
                           color: Color.muted
                           font.family: Style.font.family
-                          font.pixelSize: 8
+                          font.pixelSize: 7
                         }
                       }
                     }
@@ -610,7 +610,7 @@ BarWidget {
                     // Vertical list of countries in this tier
                     Flickable {
                       width: parent.width
-                      height: parent.height - Style.space(32)
+                      height: parent.height - Style.space(30)
                       contentHeight: countryBtnCol.implicitHeight
                       clip: true
                       boundsBehavior: Flickable.StopAtBounds
@@ -629,8 +629,8 @@ BarWidget {
                             text: modelData.label
                             bordered: true
                             selected: modelData.code === root.selectedCountryCode
-                            fontSize: 9
-                            horizontalPadding: Style.space(3)
+                            fontSize: 8
+                            horizontalPadding: Style.space(2)
                             onClicked: root.selectCountry(modelData.code)
                           }
                         }
