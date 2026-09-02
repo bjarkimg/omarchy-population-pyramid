@@ -42,57 +42,97 @@ BarWidget {
 
   readonly property var pyramidYearsList: [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100]
 
-  // 3 Categorized Rows of Countries/Flags for Fast Quick-Access
-  readonly property var line1Countries: [
-    { code: "KOR", label: "🇰🇷 S.Korea" },
-    { code: "TWN", label: "🇹🇼 Taiwan" },
-    { code: "HKG", label: "🇭🇰 Hong Kong" },
-    { code: "SGP", label: "🇸🇬 Singapore" },
-    { code: "JPN", label: "🇯🇵 Japan" },
-    { code: "ITA", label: "🇮🇹 Italy" },
-    { code: "ESP", label: "🇪🇸 Spain" },
-    { code: "UKR", label: "🇺🇦 Ukraine" },
-    { code: "POL", label: "🇵🇱 Poland" },
-    { code: "GRC", label: "🇬🇷 Greece" },
-    { code: "PRT", label: "🇵🇹 Portugal" },
-    { code: "CHN", label: "🇨🇳 China" },
-    { code: "THA", label: "🇹🇭 Thailand" }
+  // 42 countries in 3 severity tiers, wrapped across 7 flag lines (2 + 3 + 2).
+  // Tier colors match the TFR readout in the vital statistics card.
+  readonly property var severityTiers: [
+    {
+      key: "critical",
+      dot: "\ud83d\udd34",
+      label: "ULTRA-LOW TFR / RAPID DECLINE",
+      range: "< 1.3",
+      color: "#f87171",
+      lines: 2,
+      countries: [
+        { code: "KOR", label: "\ud83c\uddf0\ud83c\uddf7 S.Korea" },
+        { code: "TWN", label: "\ud83c\uddf9\ud83c\uddfc Taiwan" },
+        { code: "HKG", label: "\ud83c\udded\ud83c\uddf0 Hong Kong" },
+        { code: "SGP", label: "\ud83c\uddf8\ud83c\uddec Singapore" },
+        { code: "JPN", label: "\ud83c\uddef\ud83c\uddf5 Japan" },
+        { code: "ITA", label: "\ud83c\uddee\ud83c\uddf9 Italy" },
+        { code: "ESP", label: "\ud83c\uddea\ud83c\uddf8 Spain" },
+        { code: "UKR", label: "\ud83c\uddfa\ud83c\udde6 Ukraine" },
+        { code: "POL", label: "\ud83c\uddf5\ud83c\uddf1 Poland" },
+        { code: "GRC", label: "\ud83c\uddec\ud83c\uddf7 Greece" },
+        { code: "PRT", label: "\ud83c\uddf5\ud83c\uddf9 Portugal" },
+        { code: "CHN", label: "\ud83c\udde8\ud83c\uddf3 China" },
+        { code: "THA", label: "\ud83c\uddf9\ud83c\udded Thailand" }
+      ]
+    },
+    {
+      key: "aging",
+      dot: "\ud83d\udfe1",
+      label: "AGING & SUB-REPLACEMENT",
+      range: "1.3 \u2013 2.0",
+      color: "#fbbf24",
+      lines: 3,
+      countries: [
+        { code: "DEU", label: "\ud83c\udde9\ud83c\uddea Germany" },
+        { code: "GBR", label: "\ud83c\uddec\ud83c\udde7 UK" },
+        { code: "FRA", label: "\ud83c\uddeb\ud83c\uddf7 France" },
+        { code: "USA", label: "\ud83c\uddfa\ud83c\uddf8 USA" },
+        { code: "CAN", label: "\ud83c\udde8\ud83c\udde6 Canada" },
+        { code: "AUS", label: "\ud83c\udde6\ud83c\uddfa Australia" },
+        { code: "ISL", label: "\ud83c\uddee\ud83c\uddf8 Iceland" },
+        { code: "NOR", label: "\ud83c\uddf3\ud83c\uddf4 Norway" },
+        { code: "SWE", label: "\ud83c\uddf8\ud83c\uddea Sweden" },
+        { code: "FIN", label: "\ud83c\uddeb\ud83c\uddee Finland" },
+        { code: "DNK", label: "\ud83c\udde9\ud83c\uddf0 Denmark" },
+        { code: "RUS", label: "\ud83c\uddf7\ud83c\uddfa Russia" },
+        { code: "BRA", label: "\ud83c\udde7\ud83c\uddf7 Brazil" },
+        { code: "MEX", label: "\ud83c\uddf2\ud83c\uddfd Mexico" },
+        { code: "CHL", label: "\ud83c\udde8\ud83c\uddf1 Chile" }
+      ]
+    },
+    {
+      key: "growth",
+      dot: "\ud83d\udfe2",
+      label: "GROWTH & GLOBAL",
+      range: "\u2265 2.0",
+      color: "#4ade80",
+      lines: 2,
+      countries: [
+        { code: "WLD", label: "\ud83c\udf0d World" },
+        { code: "IND", label: "\ud83c\uddee\ud83c\uddf3 India" },
+        { code: "IDN", label: "\ud83c\uddee\ud83c\udde9 Indonesia" },
+        { code: "VNM", label: "\ud83c\uddfb\ud83c\uddf3 Vietnam" },
+        { code: "PHL", label: "\ud83c\uddf5\ud83c\udded Philippines" },
+        { code: "TUR", label: "\ud83c\uddf9\ud83c\uddf7 Turkey" },
+        { code: "ZAF", label: "\ud83c\uddff\ud83c\udde6 S.Africa" },
+        { code: "EGY", label: "\ud83c\uddea\ud83c\uddec Egypt" },
+        { code: "PAK", label: "\ud83c\uddf5\ud83c\uddf0 Pakistan" },
+        { code: "NGA", label: "\ud83c\uddf3\ud83c\uddec Nigeria" },
+        { code: "ETH", label: "\ud83c\uddea\ud83c\uddf9 Ethiopia" },
+        { code: "KEN", label: "\ud83c\uddf0\ud83c\uddea Kenya" },
+        { code: "ARG", label: "\ud83c\udde6\ud83c\uddf7 Argentina" },
+        { code: "COL", label: "\ud83c\udde8\ud83c\uddf4 Colombia" }
+      ]
+    }
   ]
 
-  readonly property var line2Countries: [
-    { code: "DEU", label: "🇩🇪 Germany" },
-    { code: "GBR", label: "🇬🇧 UK" },
-    { code: "FRA", label: "🇫🇷 France" },
-    { code: "USA", label: "🇺🇸 USA" },
-    { code: "CAN", label: "🇨🇦 Canada" },
-    { code: "AUS", label: "🇦🇺 Australia" },
-    { code: "ISL", label: "🇮🇸 Iceland" },
-    { code: "NOR", label: "🇳🇴 Norway" },
-    { code: "SWE", label: "🇸🇪 Sweden" },
-    { code: "FIN", label: "🇫🇮 Finland" },
-    { code: "DNK", label: "🇩🇰 Denmark" },
-    { code: "RUS", label: "🇷🇺 Russia" },
-    { code: "BRA", label: "🇧🇷 Brazil" },
-    { code: "MEX", label: "🇲🇽 Mexico" },
-    { code: "CHL", label: "🇨🇱 Chile" }
-  ]
-
-  readonly property var line3Countries: [
-    { code: "WLD", label: "🌍 World" },
-    { code: "IND", label: "🇮🇳 India" },
-    { code: "IDN", label: "🇮🇩 Indonesia" },
-    { code: "VNM", label: "🇻🇳 Vietnam" },
-    { code: "PHL", label: "🇵🇭 Philippines" },
-    { code: "TUR", label: "🇹🇷 Turkey" },
-    { code: "ZAF", label: "🇿🇦 S.Africa" },
-    { code: "EGY", label: "🇪🇬 Egypt" },
-    { code: "PAK", label: "🇵🇰 Pakistan" },
-    { code: "NGA", label: "🇳🇬 Nigeria" },
-    { code: "ETH", label: "🇪🇹 Ethiopia" },
-    { code: "KEN", label: "🇰🇪 Kenya" },
-    { code: "ARG", label: "🇦🇷 Argentina" },
-    { code: "COL", label: "🇨🇴 Colombia" }
-  ]
+  // Split a tier into `lineCount` balanced lines: (13, 2) -> [7, 6], (15, 3) -> [5, 5, 5]
+  function chunkLines(items, lineCount) {
+    if (!items || items.length === 0 || lineCount < 1) return []
+    var lines = []
+    var base = Math.floor(items.length / lineCount)
+    var extra = items.length % lineCount
+    var start = 0
+    for (var i = 0; i < lineCount; i++) {
+      var take = base + (i < extra ? 1 : 0)
+      lines.push(items.slice(start, start + take))
+      start += take
+    }
+    return lines
+  }
 
   function open() {
     popupOpen = true
@@ -196,7 +236,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(540))
+    contentWidth: panel.fittedContentWidth(Style.space(600))
     contentHeight: panel.fittedContentHeight(mainColumn.implicitHeight)
 
     PanelKeyCatcher {
@@ -319,11 +359,11 @@ BarWidget {
             }
           }
 
-          // 3 Flag Lines with Horizontal Scrollbar
+          // 7 Flag Lines, Grouped Into 3 Severity Tiers
           Item {
             visible: !root.showingSearchList
             width: parent.width
-            height: Style.space(84)
+            height: flagColumn.implicitHeight + Style.space(8)
 
             Flickable {
               id: flagFlickable
@@ -336,64 +376,68 @@ BarWidget {
 
               Column {
                 id: flagColumn
-                spacing: Style.space(3)
+                spacing: Style.space(6)
 
-                // Line 1: Ultra-Low TFR & Rapid Decline (< 1.3)
-                Row {
-                  spacing: Style.space(4)
-                  Repeater {
-                    model: root.line1Countries
-                    Button {
-                      height: Style.space(21)
-                      text: modelData.label
-                      bordered: true
-                      selected: modelData.code === root.selectedCountryCode
-                      fontSize: 9.5
-                      horizontalPadding: Style.space(5)
-                      onClicked: root.selectCountry(modelData.code)
+                Repeater {
+                  model: root.severityTiers
+
+                  Column {
+                    id: tierBlock
+                    readonly property var tier: modelData
+                    spacing: Style.space(3)
+
+                    // Tier header: severity dot, name, and TFR band
+                    Row {
+                      spacing: Style.space(5)
+
+                      Text {
+                        text: tierBlock.tier.dot + " " + tierBlock.tier.label
+                        color: tierBlock.tier.color
+                        font.family: Style.font.family
+                        font.pixelSize: Style.font.caption
+                        font.bold: true
+                      }
+
+                      Text {
+                        text: "TFR " + tierBlock.tier.range
+                        color: Color.muted
+                        font.family: Style.font.family
+                        font.pixelSize: Style.font.caption
+                      }
                     }
-                  }
-                }
 
-                // Line 2: Aging & Sub-replacement (1.3 - 2.0)
-                Row {
-                  spacing: Style.space(4)
-                  Repeater {
-                    model: root.line2Countries
-                    Button {
-                      height: Style.space(21)
-                      text: modelData.label
-                      bordered: true
-                      selected: modelData.code === root.selectedCountryCode
-                      fontSize: 9.5
-                      horizontalPadding: Style.space(5)
-                      onClicked: root.selectCountry(modelData.code)
-                    }
-                  }
-                }
+                    Repeater {
+                      model: root.chunkLines(tierBlock.tier.countries, tierBlock.tier.lines)
 
-                // Line 3: Growth & Global (≥ 2.0)
-                Row {
-                  spacing: Style.space(4)
-                  Repeater {
-                    model: root.line3Countries
-                    Button {
-                      height: Style.space(21)
-                      text: modelData.label
-                      bordered: true
-                      selected: modelData.code === root.selectedCountryCode
-                      fontSize: 9.5
-                      horizontalPadding: Style.space(5)
-                      onClicked: root.selectCountry(modelData.code)
+                      Row {
+                        id: flagLine
+                        readonly property var lineCountries: modelData
+                        spacing: Style.space(4)
+
+                        Repeater {
+                          model: flagLine.lineCountries
+
+                          Button {
+                            height: Style.space(21)
+                            text: modelData.label
+                            bordered: true
+                            selected: modelData.code === root.selectedCountryCode
+                            fontSize: 9.5
+                            horizontalPadding: Style.space(5)
+                            onClicked: root.selectCountry(modelData.code)
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
             }
 
-            // Sleek Scroll Bar Track & Thumb
+            // Sleek Scroll Bar Track & Thumb -- only shown when a line overflows
             Rectangle {
               id: scrollTrack
+              visible: flagFlickable.contentWidth > flagFlickable.width + 1
               anchors.bottom: parent.bottom
               anchors.left: parent.left
               anchors.right: parent.right

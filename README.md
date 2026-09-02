@@ -6,10 +6,13 @@ An interactive demographic analysis, population decline tracker, and vertical ag
 
 ## Features
 
-- **3 Flag Quick-Picker Rows with Scrollbar:**
-  - **🔴 Ultra-Low TFR / Rapid Decline (< 1.3):** 🇰🇷 S.Korea, 🇹🇼 Taiwan, 🇭🇰 HK, 🇸🇬 Singapore, 🇯🇵 Japan, 🇮🇹 Italy, 🇪🇸 Spain, 🇺🇦 Ukraine, 🇵🇱 Poland, 🇬🇷 Greece, 🇵🇹 Portugal, 🇨🇳 China, 🇹🇭 Thailand
-  - **🟡 Aging & Sub-Replacement (1.3–2.0):** 🇩🇪 Germany, 🇬🇧 UK, 🇫🇷 France, 🇺🇸 USA, 🇨🇦 Canada, 🇦🇺 Australia, 🇮🇸 Iceland, 🇳🇴 Norway, 🇸🇪 Sweden, 🇫🇮 Finland, 🇩🇰 Denmark, 🇷🇺 Russia, 🇧🇷 Brazil, 🇲🇽 Mexico, 🇨🇱 Chile
-  - **🟢 Growth & Global (≥ 2.0):** 🌍 World, 🇮🇳 India, 🇮🇩 Indonesia, 🇻🇳 Vietnam, 🇵🇭 Philippines, 🇹🇷 Turkey, 🇿🇦 S.Africa, 🇪🇬 Egypt, 🇵🇰 Pakistan, 🇳🇬 Nigeria, 🇪🇹 Ethiopia, 🇰🇪 Kenya, 🇦🇷 Argentina, 🇨🇴 Colombia
+- **7 Flag Quick-Picker Lines, Grouped Into 3 Severity Tiers:**
+  All 42 countries are visible at once — no scrolling. Each tier carries a colored
+  header with its TFR band, and its countries wrap across a fixed number of lines
+  (2 + 3 + 2 = 7):
+  - **🔴 Ultra-Low TFR / Rapid Decline (< 1.3)** — 2 lines: 🇰🇷 S.Korea, 🇹🇼 Taiwan, 🇭🇰 HK, 🇸🇬 Singapore, 🇯🇵 Japan, 🇮🇹 Italy, 🇪🇸 Spain, 🇺🇦 Ukraine, 🇵🇱 Poland, 🇬🇷 Greece, 🇵🇹 Portugal, 🇨🇳 China, 🇹🇭 Thailand
+  - **🟡 Aging & Sub-Replacement (1.3–2.0)** — 3 lines: 🇩🇪 Germany, 🇬🇧 UK, 🇫🇷 France, 🇺🇸 USA, 🇨🇦 Canada, 🇦🇺 Australia, 🇮🇸 Iceland, 🇳🇴 Norway, 🇸🇪 Sweden, 🇫🇮 Finland, 🇩🇰 Denmark, 🇷🇺 Russia, 🇧🇷 Brazil, 🇲🇽 Mexico, 🇨🇱 Chile
+  - **🟢 Growth & Global (≥ 2.0)** — 2 lines: 🌍 World, 🇮🇳 India, 🇮🇩 Indonesia, 🇻🇳 Vietnam, 🇵🇭 Philippines, 🇹🇷 Turkey, 🇿🇦 S.Africa, 🇪🇬 Egypt, 🇵🇰 Pakistan, 🇳🇬 Nigeria, 🇪🇹 Ethiopia, 🇰🇪 Kenya, 🇦🇷 Argentina, 🇨🇴 Colombia
 - **Vertical Age-Sex Population Pyramid:** 21 age brackets (0–4 to 100+) with male (cyan) and female (rose) bilateral cohorts and hover tooltips.
 - **Continuous Trajectory Line Chart:**
   - **Sub-Replacement (TFR < 2.1):** Historical curve (1950–2026) followed by post-peak decline to **Zero / Extinction Horizon**.
