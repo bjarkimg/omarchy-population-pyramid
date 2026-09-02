@@ -29,7 +29,7 @@ Item {
     return Math.max(m * 1.18, 1.0)
   }
 
-  implicitWidth: Style.space(500)
+  implicitWidth: Style.space(645)
   implicitHeight: Style.space(200)
 
   function formatPop(val) {
