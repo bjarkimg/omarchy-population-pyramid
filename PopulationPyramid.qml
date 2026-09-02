@@ -251,6 +251,9 @@ Item {
 
       Text {
         anchors.centerIn: parent
+        width: parent.width - Style.space(10)
+        horizontalAlignment: Text.AlignHCenter
+        elide: Text.ElideRight
         text: {
           if (root.hoveredIndex >= 0) {
             var m = (root.maleData && root.maleData[root.hoveredIndex] !== undefined) ? root.maleData[root.hoveredIndex] : 0
@@ -258,6 +261,12 @@ Item {
             var cohortName = root.ageGroups[root.hoveredIndex]
             var totalPct = (m + f).toFixed(1)
             return "Age " + cohortName + ": Male " + m.toFixed(1) + "%  |  Female " + f.toFixed(1) + "%  |  Combined " + totalPct + "% of population"
+          }
+          var yp = root.yearPyramid
+          if (yp && yp.medianAgeGap !== undefined) {
+            return "Median M " + yp.medianAgeM.toFixed(1) + " / F " + yp.medianAgeF.toFixed(1)
+              + " (Δ" + yp.medianAgeGap.toFixed(1) + "y)  ·  Δe₀ " + yp.lifeExpGap.toFixed(1)
+              + "y  ·  " + yp.sexRatio.toFixed(0) + " M/100F  ·  65+ " + yp.female65Share.toFixed(0) + "% F"
           }
           return "Hover any age bracket for breakdown  ·  Orange cohorts = 65+ Elderly"
         }

@@ -40,7 +40,14 @@ BarWidget {
     ? dataset.countries[selectedCountryCode]
     : (countryList.length > 0 ? countryList[0] : null)
 
-  readonly property var pyramidYearsList: [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100]
+  // Year grid comes from the dataset so it cannot drift from build_data.py.
+  // It matches the trajectory chart's 5-year step, plus the "now" anchor.
+  readonly property int currentYear: (dataset && dataset.metadata && dataset.metadata.currentYear)
+    ? dataset.metadata.currentYear : 2026
+  readonly property var pyramidYearsList: (dataset && dataset.metadata && dataset.metadata.pyramidYears
+    && dataset.metadata.pyramidYears.length > 0)
+    ? dataset.metadata.pyramidYears
+    : [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100]
 
   // 42 countries in 3 severity tiers, wrapped across 7 flag lines (2 + 3 + 2).
   // Tier colors match the TFR readout in the vital statistics card.
@@ -152,7 +159,7 @@ BarWidget {
 
   function stepYear(delta) {
     var currentIdx = pyramidYearsList.indexOf(parseInt(selectedYear, 10))
-    if (currentIdx < 0) currentIdx = 6 // 2026
+    if (currentIdx < 0) currentIdx = Math.max(0, pyramidYearsList.indexOf(currentYear))
     var nextIdx = currentIdx + delta
     if (nextIdx >= pyramidYearsList.length) nextIdx = 0
     if (nextIdx < 0) nextIdx = pyramidYearsList.length - 1
@@ -167,7 +174,7 @@ BarWidget {
     selectedCountryCode = code
     showingSearchList = false
     searchQuery = ""
-    selectedYear = "2026"
+    selectedYear = String(currentYear)
   }
 
   FileView {
@@ -186,7 +193,7 @@ BarWidget {
 
   Timer {
     id: playTimer
-    interval: 850
+    interval: 400
     repeat: true
     running: root.isPlaying && root.popupOpen
     onTriggered: root.stepYear(1)
