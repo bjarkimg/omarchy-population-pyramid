@@ -73,7 +73,7 @@ Item {
     anchors.fill: parent
     spacing: Style.space(4)
 
-    // Chart Title & Subtitle Badge
+    // Chart Title, Legend & Subtitle Badge
     Item {
       width: parent.width
       height: Style.space(18)
@@ -86,8 +86,33 @@ Item {
           : "📈 100Y GROWTH TRAJECTORY (TFR " + root.tfr.toFixed(2) + ")"
         color: root.isSubReplacement ? "#f87171" : "#4ade80"
         font.family: Style.font.family
-        font.pixelSize: 10
+        font.pixelSize: 9
         font.bold: true
+      }
+
+      // Center Milestone Legend
+      Row {
+        anchors.centerIn: parent
+        spacing: Style.space(8)
+        visible: root.isSubReplacement
+
+        Row {
+          spacing: 3
+          Rectangle { width: 7; height: 7; radius: 3.5; color: "#fbbf24"; border.color: "#000"; border.width: 1; anchors.verticalCenter: parent.verticalCenter }
+          Text { text: "Peak"; color: Color.muted; font.pixelSize: 8; font.family: Style.font.family; anchors.verticalCenter: parent.verticalCenter }
+        }
+
+        Row {
+          spacing: 3
+          Rectangle { width: 7; height: 7; radius: 3.5; color: "#f43f5e"; border.color: "#000"; border.width: 1; anchors.verticalCenter: parent.verticalCenter }
+          Text { text: "T½ Halving (50%)"; color: Color.muted; font.pixelSize: 8; font.family: Style.font.family; anchors.verticalCenter: parent.verticalCenter }
+        }
+
+        Row {
+          spacing: 3
+          Rectangle { width: 7; height: 7; radius: 3.5; color: "#dc2626"; border.color: "#fff"; border.width: 1; anchors.verticalCenter: parent.verticalCenter }
+          Text { text: "Zero (~0)"; color: Color.muted; font.pixelSize: 8; font.family: Style.font.family; anchors.verticalCenter: parent.verticalCenter }
+        }
       }
 
       Text {
@@ -98,7 +123,7 @@ Item {
           : ("Hover / Drag to Scrub Timeline (" + root.startYear + "–" + root.endYear + ")")
         color: root.isHovered ? Color.foreground : Color.muted
         font.family: Style.font.family
-        font.pixelSize: 9
+        font.pixelSize: 8
       }
     }
 
@@ -280,6 +305,11 @@ Item {
             ctx.lineWidth = 1.5
             ctx.strokeStyle = "#000"
             ctx.stroke()
+
+            ctx.font = "8px monospace"
+            ctx.fillStyle = "#fbbf24"
+            ctx.textAlign = "center"
+            ctx.fillText("PEAK", peakX, Math.max(marginT + 10, peakY - 8))
           }
 
           // Halving Point Dot
@@ -294,6 +324,11 @@ Item {
             ctx.lineWidth = 1.5
             ctx.strokeStyle = "#000"
             ctx.stroke()
+
+            ctx.font = "8px monospace"
+            ctx.fillStyle = "#f43f5e"
+            ctx.textAlign = "center"
+            ctx.fillText("T½ 50%", halfX, Math.max(marginT + 10, halfY - 8))
           }
 
           // Zero / Extinction Point Dot
@@ -307,6 +342,11 @@ Item {
             ctx.lineWidth = 1.5
             ctx.strokeStyle = "#fff"
             ctx.stroke()
+
+            ctx.font = "8px monospace"
+            ctx.fillStyle = "#dc2626"
+            ctx.textAlign = "center"
+            ctx.fillText("~0", extX, extY - 8)
           }
 
           // 2026 Current Year Marker Dot
