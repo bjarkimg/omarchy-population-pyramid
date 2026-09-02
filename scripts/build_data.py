@@ -386,46 +386,6 @@ def calculate_demographics():
         country = Country(code, tfr, med_age, tfr_1950)
         frames = project(country, PYRAMID_YEARS)
 
-        pyramids = {}
-        for yr in PYRAMID_YEARS:
-            mc, fc = frames[yr]
-            total = sum(mc) + sum(fc)
-            m_pct = [round(v / total * 100.0, 3) for v in mc]
-            f_pct = [round(v / total * 100.0, 3) for v in fc]
-
-            km, ikm, kf, ikf = country.mortality(yr)
-            _, _, e0m = life_table(km, ikm)
-            _, _, e0f = life_table(kf, ikf)
-
-            m_tot, f_tot = sum(mc), sum(fc)
-            old = list(range(13, N_AGE))          # 65+
-            young = list(range(0, 3))             # 0-14
-            working = list(range(3, 13))          # 15-64
-            old_m = sum(mc[i] for i in old)
-            old_f = sum(fc[i] for i in old)
-            young_tot = sum(mc[i] + fc[i] for i in young)
-            working_tot = sum(mc[i] + fc[i] for i in working)
-            med_m = median_age(mc)
-            med_f = median_age(fc)
-
-            pyramids[str(yr)] = {
-                "m": m_pct,
-                "f": f_pct,
-                "tfr": round(country.tfr(yr), 2),
-                "srb": round(srb_for(code, yr), 3),
-                "sexRatio": round(m_tot / f_tot * 100.0, 1),
-                "medianAgeM": round(med_m, 1),
-                "medianAgeF": round(med_f, 1),
-                "medianAgeGap": round(med_f - med_m, 1),
-                "lifeExpM": round(e0m, 1),
-                "lifeExpF": round(e0f, 1),
-                "lifeExpGap": round(e0f - e0m, 1),
-                "share65": round((old_m + old_f) / total * 100.0, 1),
-                "female65Share": round(old_f / (old_m + old_f) * 100.0, 1) if (old_m + old_f) > 0 else 0.0,
-                "share014": round(young_tot / total * 100.0, 1),
-                "dependencyRatio": round((young_tot + old_m + old_f) / working_tot * 100.0, 1) if working_tot > 0 else 0.0,
-            }
-
         # ---- population trajectory (level), unchanged model + the 2026 anchor point
         if tfr < 0.85:
             decline_annual = -1.35
@@ -485,6 +445,54 @@ def calculate_demographics():
                 factor = (growth_rate / 100.0) * max(0.2, 1.0 - growth_t * 0.6)
                 p = pop2026 * math.exp(factor * (y - CURRENT_YEAR))
             trajectory.append({"year": y, "pop": round(max(0.0, p), 2), "historical": False})
+
+        pop_by_year = {pt["year"]: pt["pop"] for pt in trajectory}
+        max_pop_anchor = max(pop2026, peak_pop, 0.1)
+
+        pyramids = {}
+        for yr in PYRAMID_YEARS:
+            mc, fc = frames[yr]
+            total = sum(mc) + sum(fc)
+            m_pct = [round(v / total * 100.0, 3) for v in mc]
+            f_pct = [round(v / total * 100.0, 3) for v in fc]
+
+            km, ikm, kf, ikf = country.mortality(yr)
+            _, _, e0m = life_table(km, ikm)
+            _, _, e0f = life_table(kf, ikf)
+
+            m_tot, f_tot = sum(mc), sum(fc)
+            old = list(range(13, N_AGE))          # 65+
+            young = list(range(0, 3))             # 0-14
+            working = list(range(3, 13))          # 15-64
+            old_m = sum(mc[i] for i in old)
+            old_f = sum(fc[i] for i in old)
+            young_tot = sum(mc[i] + fc[i] for i in young)
+            working_tot = sum(mc[i] + fc[i] for i in working)
+            med_m = median_age(mc)
+            med_f = median_age(fc)
+
+            pyr_pop = pop_by_year.get(yr, pop2026)
+            pop_ratio = round(pyr_pop / max_pop_anchor, 4)
+
+            pyramids[str(yr)] = {
+                "m": m_pct,
+                "f": f_pct,
+                "pop": pyr_pop,
+                "popRatio": pop_ratio,
+                "tfr": round(country.tfr(yr), 2),
+                "srb": round(srb_for(code, yr), 3),
+                "sexRatio": round(m_tot / f_tot * 100.0, 1),
+                "medianAgeM": round(med_m, 1),
+                "medianAgeF": round(med_f, 1),
+                "medianAgeGap": round(med_f - med_m, 1),
+                "lifeExpM": round(e0m, 1),
+                "lifeExpF": round(e0f, 1),
+                "lifeExpGap": round(e0f - e0m, 1),
+                "share65": round((old_m + old_f) / total * 100.0, 1),
+                "female65Share": round(old_f / (old_m + old_f) * 100.0, 1) if (old_m + old_f) > 0 else 0.0,
+                "share014": round(young_tot / total * 100.0, 1),
+                "dependencyRatio": round((young_tot + old_m + old_f) / working_tot * 100.0, 1) if working_tot > 0 else 0.0,
+            }
 
         p2050 = next((pt["pop"] for pt in trajectory if pt["year"] == 2050), pop2026)
         p2100 = next((pt["pop"] for pt in trajectory if pt["year"] == 2100), pop2026)

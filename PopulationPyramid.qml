@@ -44,6 +44,14 @@ Item {
     return Math.max(maxVal * 1.08, 7.0)
   }
 
+  // Population volume scaling factor relative to peak / 2026
+  readonly property real volumeScale: {
+    if (yearPyramid && yearPyramid.popRatio !== undefined) {
+      return Math.max(0.015, Math.min(1.0, yearPyramid.popRatio))
+    }
+    return 1.0
+  }
+
   implicitWidth: Style.space(460)
   implicitHeight: pyramidColumn.implicitHeight + Style.space(32)
 
@@ -60,7 +68,7 @@ Item {
       height: Style.space(20)
 
       Item {
-        width: (parent.width - Style.space(56)) / 2
+        width: (parent.width - Style.space(110)) / 2
         height: parent.height
         Text {
           anchors.right: parent.right
@@ -75,12 +83,12 @@ Item {
       }
 
       Item {
-        width: Style.space(56)
+        width: Style.space(110)
         height: parent.height
         Text {
           anchors.centerIn: parent
-          text: "AGE"
-          color: Color.muted
+          text: root.selectedYear + (root.yearPyramid && root.yearPyramid.pop !== undefined ? (" · " + (root.yearPyramid.pop >= 1000 ? (root.yearPyramid.pop/1000).toFixed(2) + "B" : root.yearPyramid.pop >= 1.0 ? root.yearPyramid.pop.toFixed(1) + "M" : (root.yearPyramid.pop*1000).toFixed(0) + "k")) : "")
+          color: Color.foreground
           font.family: Style.font.family
           font.pixelSize: Style.font.caption
           font.bold: true
@@ -88,7 +96,7 @@ Item {
       }
 
       Item {
-        width: (parent.width - Style.space(56)) / 2
+        width: (parent.width - Style.space(110)) / 2
         height: parent.height
         Text {
           anchors.left: parent.left
@@ -151,7 +159,7 @@ Item {
             visible: rowItem.isHovered || (index % 4 === 0)
           }
 
-          // Background track
+          // Background track (Ghost silhouette of peak width)
           Rectangle {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -161,11 +169,11 @@ Item {
             color: root.maleBg
           }
 
-          // Active Male bar
+          // Active Male bar (scaled by population volume collapse)
           Rectangle {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(2, (rowItem.mVal / root.maxCohortPct) * (parent.width - Style.space(34)))
+            width: Math.max(1, (rowItem.mVal / root.maxCohortPct) * (parent.width - Style.space(34)) * root.volumeScale)
             height: Style.space(8)
             radius: 2
             color: rowItem.isHovered ? Qt.lighter(root.maleColor, 1.2) : root.maleColor
@@ -200,7 +208,7 @@ Item {
           anchors.bottom: parent.bottom
           width: rowItem.sideWidth
 
-          // Background track
+          // Background track (Ghost silhouette of peak width)
           Rectangle {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -210,11 +218,11 @@ Item {
             color: root.femaleBg
           }
 
-          // Active Female bar
+          // Active Female bar (scaled by population volume collapse)
           Rectangle {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(2, (rowItem.fVal / root.maxCohortPct) * (parent.width - Style.space(34)))
+            width: Math.max(1, (rowItem.fVal / root.maxCohortPct) * (parent.width - Style.space(34)) * root.volumeScale)
             height: Style.space(8)
             radius: 2
             color: rowItem.isHovered ? Qt.lighter(root.femaleColor, 1.2) : root.femaleColor
@@ -260,7 +268,10 @@ Item {
             var f = (root.femaleData && root.femaleData[root.hoveredIndex] !== undefined) ? root.femaleData[root.hoveredIndex] : 0
             var cohortName = root.ageGroups[root.hoveredIndex]
             var totalPct = (m + f).toFixed(1)
-            return "Age " + cohortName + ": Male " + m.toFixed(1) + "%  |  Female " + f.toFixed(1) + "%  |  Combined " + totalPct + "% of population"
+            var popMil = (root.yearPyramid && root.yearPyramid.pop !== undefined) ? root.yearPyramid.pop : (root.countryData ? root.countryData.population2026 : 0)
+            var cohortPop = ((m + f) / 100.0) * popMil
+            var popStr = cohortPop >= 1000 ? (cohortPop/1000).toFixed(2) + "B" : (cohortPop >= 1.0 ? cohortPop.toFixed(2) + "M" : (cohortPop * 1000).toFixed(0) + "k")
+            return "Age " + cohortName + ": " + totalPct + "% (" + popStr + ") · M " + m.toFixed(1) + "% · F " + f.toFixed(1) + "%"
           }
           var yp = root.yearPyramid
           if (yp && yp.medianAgeGap !== undefined) {
