@@ -224,7 +224,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(920))
+    contentWidth: panel.fittedContentWidth(Style.space(960))
     contentHeight: panel.fittedContentHeight(mainRow.implicitHeight)
 
     PanelKeyCatcher {
@@ -252,188 +252,11 @@ BarWidget {
         spacing: Style.space(12)
 
         // =====================================================================
-        // LEFT SIDEBAR: 3-Column Country Directory Grouped by Severity Tier
+        // LEFT MAIN PANEL: Active Country Demographics, Pyramid & Trajectory
         // =====================================================================
         Column {
-          id: leftSidebar
-          width: Style.space(370)
-          spacing: Style.space(7)
-
-          // Sidebar Title Header
-          Item {
-            width: parent.width
-            height: Style.space(26)
-
-            Text {
-              anchors.left: parent.left
-              anchors.verticalCenter: parent.verticalCenter
-              text: "🌍 GLOBAL DIRECTORY"
-              color: Color.accent
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-              font.bold: true
-            }
-
-            Text {
-              anchors.right: parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              text: "42 NATIONS"
-              color: Color.muted
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              font.bold: true
-            }
-          }
-
-          // Search Input
-          TextField {
-            id: searchInput
-            width: parent.width
-            placeholderText: "Search country or code (e.g. Korea, Japan, ISL)..."
-            text: root.searchQuery
-            onTextChanged: {
-              root.searchQuery = text
-              root.showingSearchList = text.trim().length > 0
-            }
-            onAccepted: {
-              if (root.filteredCountries.length > 0) {
-                root.selectCountry(root.filteredCountries[0].code)
-              }
-            }
-          }
-
-          // Search Results Overlay List (when typing in search)
-          Rectangle {
-            visible: root.showingSearchList
-            width: parent.width
-            height: Style.space(430)
-            color: Qt.rgba(0.08, 0.12, 0.18, 0.95)
-            border.color: Color.accent
-            border.width: 1
-            radius: 6
-            clip: true
-
-            Flickable {
-              anchors.fill: parent
-              anchors.margins: Style.space(4)
-              contentHeight: searchListCol.implicitHeight
-              clip: true
-
-              Column {
-                id: searchListCol
-                width: parent.width
-                spacing: 2
-
-                Repeater {
-                  model: root.filteredCountries
-                  Button {
-                    width: parent.width
-                    height: Style.space(26)
-                    text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
-                    bordered: false
-                    selected: modelData.code === root.selectedCountryCode
-                    onClicked: root.selectCountry(modelData.code)
-                  }
-                }
-              }
-            }
-          }
-
-          // 3 Side-by-Side Vertical Columns (1 per Severity Tier)
-          Row {
-            visible: !root.showingSearchList
-            width: parent.width
-            height: Style.space(430)
-            spacing: Style.space(5)
-
-            Repeater {
-              model: root.severityTiers
-
-              Column {
-                id: tierColumn
-                readonly property var tier: modelData
-                width: (parent.width - Style.space(10)) / 3
-                height: parent.height
-                spacing: Style.space(3)
-
-                // Tier Column Header
-                Rectangle {
-                  width: parent.width
-                  height: Style.space(34)
-                  color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
-                  border.color: Qt.rgba(1, 1, 1, 0.08)
-                  radius: 4
-
-                  Column {
-                    anchors.centerIn: parent
-                    spacing: 1
-
-                    Text {
-                      anchors.horizontalCenter: parent.horizontalCenter
-                      text: tierColumn.tier.dot + " " + (tierColumn.tier.key === "critical" ? "CRITICAL" : tierColumn.tier.key === "aging" ? "AGING" : "GROWTH")
-                      color: tierColumn.tier.color
-                      font.family: Style.font.family
-                      font.pixelSize: 9
-                      font.bold: true
-                    }
-
-                    Text {
-                      anchors.horizontalCenter: parent.horizontalCenter
-                      text: "TFR " + tierColumn.tier.range
-                      color: Color.muted
-                      font.family: Style.font.family
-                      font.pixelSize: 8
-                    }
-                  }
-                }
-
-                // Vertical list of countries in this tier
-                Flickable {
-                  width: parent.width
-                  height: parent.height - Style.space(38)
-                  contentHeight: countryBtnCol.implicitHeight
-                  clip: true
-                  boundsBehavior: Flickable.StopAtBounds
-
-                  Column {
-                    id: countryBtnCol
-                    width: parent.width
-                    spacing: Style.space(2)
-
-                    Repeater {
-                      model: tierColumn.tier.countries
-
-                      Button {
-                        width: parent.width
-                        height: Style.space(24)
-                        text: modelData.label
-                        bordered: true
-                        selected: modelData.code === root.selectedCountryCode
-                        fontSize: 9
-                        horizontalPadding: Style.space(4)
-                        onClicked: root.selectCountry(modelData.code)
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // Vertical Separator Line
-        Rectangle {
-          width: 1
-          height: leftSidebar.implicitHeight
-          color: Qt.rgba(1, 1, 1, 0.1)
-        }
-
-        // =====================================================================
-        // RIGHT MAIN PANEL: Active Country Demographics, Pyramid & Trajectory
-        // =====================================================================
-        Column {
-          id: rightPanel
-          width: Style.space(530)
+          id: leftMainPanel
+          width: Style.space(560)
           spacing: Style.space(8)
 
           // 1. Header Bar with Country Title & Close Button
@@ -627,7 +450,7 @@ BarWidget {
             selectedYear: root.selectedYear
           }
 
-          // 4. Continuous Trajectory Line Chart
+          // 4. Continuous Trajectory Line Chart (with increased vertical room)
           PopulationTrajectoryChart {
             width: parent.width
             countryData: root.currentCountry
@@ -654,6 +477,183 @@ BarWidget {
             color: Color.muted
             font.family: Style.font.family
             font.pixelSize: 9
+          }
+        }
+
+        // Vertical Separator Line
+        Rectangle {
+          width: 1
+          height: leftMainPanel.implicitHeight
+          color: Qt.rgba(1, 1, 1, 0.1)
+        }
+
+        // =====================================================================
+        // RIGHT SIDEBAR: 3-Column Country Directory Grouped by Severity Tier
+        // =====================================================================
+        Column {
+          id: rightSidebar
+          width: Style.space(380)
+          spacing: Style.space(7)
+
+          // Sidebar Title Header
+          Item {
+            width: parent.width
+            height: Style.space(26)
+
+            Text {
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              text: "🌍 GLOBAL DIRECTORY"
+              color: Color.accent
+              font.family: Style.font.family
+              font.pixelSize: Style.font.body
+              font.bold: true
+            }
+
+            Text {
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              text: "42 NATIONS"
+              color: Color.muted
+              font.family: Style.font.family
+              font.pixelSize: Style.font.caption
+              font.bold: true
+            }
+          }
+
+          // Search Input
+          TextField {
+            id: searchInput
+            width: parent.width
+            placeholderText: "Search country or code (e.g. Korea, Japan, ISL)..."
+            text: root.searchQuery
+            onTextChanged: {
+              root.searchQuery = text
+              root.showingSearchList = text.trim().length > 0
+            }
+            onAccepted: {
+              if (root.filteredCountries.length > 0) {
+                root.selectCountry(root.filteredCountries[0].code)
+              }
+            }
+          }
+
+          // Search Results Overlay List (when typing in search)
+          Rectangle {
+            visible: root.showingSearchList
+            width: parent.width
+            height: Style.space(460)
+            color: Qt.rgba(0.08, 0.12, 0.18, 0.95)
+            border.color: Color.accent
+            border.width: 1
+            radius: 6
+            clip: true
+
+            Flickable {
+              anchors.fill: parent
+              anchors.margins: Style.space(4)
+              contentHeight: searchListCol.implicitHeight
+              clip: true
+
+              Column {
+                id: searchListCol
+                width: parent.width
+                spacing: 2
+
+                Repeater {
+                  model: root.filteredCountries
+                  Button {
+                    width: parent.width
+                    height: Style.space(26)
+                    text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
+                    bordered: false
+                    selected: modelData.code === root.selectedCountryCode
+                    onClicked: root.selectCountry(modelData.code)
+                  }
+                }
+              }
+            }
+          }
+
+          // 3 Side-by-Side Vertical Columns (1 per Severity Tier)
+          Row {
+            visible: !root.showingSearchList
+            width: parent.width
+            height: Style.space(465)
+            spacing: Style.space(5)
+
+            Repeater {
+              model: root.severityTiers
+
+              Column {
+                id: tierColumn
+                readonly property var tier: modelData
+                width: (parent.width - Style.space(10)) / 3
+                height: parent.height
+                spacing: Style.space(3)
+
+                // Tier Column Header
+                Rectangle {
+                  width: parent.width
+                  height: Style.space(34)
+                  color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
+                  border.color: Qt.rgba(1, 1, 1, 0.08)
+                  radius: 4
+
+                  Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: tierColumn.tier.dot + " " + (tierColumn.tier.key === "critical" ? "CRITICAL" : tierColumn.tier.key === "aging" ? "AGING" : "GROWTH")
+                      color: tierColumn.tier.color
+                      font.family: Style.font.family
+                      font.pixelSize: 9
+                      font.bold: true
+                    }
+
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: "TFR " + tierColumn.tier.range
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 8
+                    }
+                  }
+                }
+
+                // Vertical list of countries in this tier
+                Flickable {
+                  width: parent.width
+                  height: parent.height - Style.space(38)
+                  contentHeight: countryBtnCol.implicitHeight
+                  clip: true
+                  boundsBehavior: Flickable.StopAtBounds
+
+                  Column {
+                    id: countryBtnCol
+                    width: parent.width
+                    spacing: Style.space(2)
+
+                    Repeater {
+                      model: tierColumn.tier.countries
+
+                      Button {
+                        width: parent.width
+                        height: Style.space(24)
+                        text: modelData.label
+                        bordered: true
+                        selected: modelData.code === root.selectedCountryCode
+                        fontSize: 9
+                        horizontalPadding: Style.space(4)
+                        onClicked: root.selectCountry(modelData.code)
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

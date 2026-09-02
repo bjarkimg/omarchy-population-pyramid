@@ -29,8 +29,8 @@ Item {
     return Math.max(m * 1.18, 1.0)
   }
 
-  implicitWidth: Style.space(460)
-  implicitHeight: Style.space(165)
+  implicitWidth: Style.space(500)
+  implicitHeight: Style.space(200)
 
   function formatPop(val) {
     if (val === undefined || val === null || isNaN(val)) return "--"
@@ -105,7 +105,7 @@ Item {
     // Canvas Line Chart
     Rectangle {
       width: parent.width
-      height: Style.space(136)
+      height: Style.space(172)
       color: Qt.rgba(0.06, 0.09, 0.14, 0.95)
       border.color: Qt.rgba(1, 1, 1, 0.1)
       border.width: 1
@@ -124,10 +124,10 @@ Item {
 
           if (!root.countryData || !root.trajectory || root.trajectory.length === 0) return
 
-          var marginL = 36
+          var marginL = 40
           var marginR = 24
-          var marginT = 16
-          var marginB = 24
+          var marginT = 18
+          var marginB = 26
           var plotW = width - marginL - marginR
           var plotH = height - marginT - marginB
 
