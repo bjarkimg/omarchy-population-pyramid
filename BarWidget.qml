@@ -49,7 +49,7 @@ BarWidget {
     ? dataset.metadata.pyramidYears
     : [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100]
 
-  // 42 countries categorized into 3 severity tiers for side-by-side 3-column layout
+  // 42 countries categorized strictly by 2026 TFR demographic tiers
   readonly property var severityTiers: [
     {
       key: "critical",
@@ -59,18 +59,17 @@ BarWidget {
       color: "#f87171",
       countries: [
         { code: "KOR", label: "🇰🇷 S.Korea" },
-        { code: "TWN", label: "🇹🇼 Taiwan" },
         { code: "HKG", label: "🇭🇰 Hong Kong" },
+        { code: "TWN", label: "🇹🇼 Taiwan" },
+        { code: "UKR", label: "🇺🇦 Ukraine" },
         { code: "SGP", label: "🇸🇬 Singapore" },
+        { code: "CHN", label: "🇨🇳 China" },
+        { code: "ESP", label: "🇪🇸 Spain" },
+        { code: "POL", label: "🇵🇱 Poland" },
+        { code: "THA", label: "🇹🇭 Thailand" },
         { code: "JPN", label: "🇯🇵 Japan" },
         { code: "ITA", label: "🇮🇹 Italy" },
-        { code: "ESP", label: "🇪🇸 Spain" },
-        { code: "UKR", label: "🇺🇦 Ukraine" },
-        { code: "POL", label: "🇵🇱 Poland" },
-        { code: "GRC", label: "🇬🇷 Greece" },
-        { code: "PRT", label: "🇵🇹 Portugal" },
-        { code: "CHN", label: "🇨🇳 China" },
-        { code: "THA", label: "🇹🇭 Thailand" }
+        { code: "FIN", label: "🇫🇮 Finland" }
       ]
     },
     {
@@ -80,21 +79,27 @@ BarWidget {
       range: "1.30 – 2.00",
       color: "#fbbf24",
       countries: [
-        { code: "DEU", label: "🇩🇪 Germany" },
-        { code: "GBR", label: "🇬🇧 UK" },
-        { code: "FRA", label: "🇫🇷 France" },
-        { code: "USA", label: "🇺🇸 USA" },
+        { code: "GRC", label: "🇬🇷 Greece" },
         { code: "CAN", label: "🇨🇦 Canada" },
-        { code: "AUS", label: "🇦🇺 Australia" },
-        { code: "ISL", label: "🇮🇸 Iceland" },
+        { code: "PRT", label: "🇵🇹 Portugal" },
+        { code: "DEU", label: "🇩🇪 Germany" },
         { code: "NOR", label: "🇳🇴 Norway" },
-        { code: "SWE", label: "🇸🇪 Sweden" },
-        { code: "FIN", label: "🇫🇮 Finland" },
-        { code: "DNK", label: "🇩🇰 Denmark" },
         { code: "RUS", label: "🇷🇺 Russia" },
+        { code: "SWE", label: "🇸🇪 Sweden" },
+        { code: "CHL", label: "🇨🇱 Chile" },
+        { code: "GBR", label: "🇬🇧 UK" },
+        { code: "DNK", label: "🇩🇰 Denmark" },
+        { code: "TUR", label: "🇹🇷 Turkey" },
+        { code: "AUS", label: "🇦🇺 Australia" },
         { code: "BRA", label: "🇧🇷 Brazil" },
+        { code: "ISL", label: "🇮🇸 Iceland" },
+        { code: "USA", label: "🇺🇸 USA" },
+        { code: "COL", label: "🇨🇴 Colombia" },
+        { code: "FRA", label: "🇫🇷 France" },
         { code: "MEX", label: "🇲🇽 Mexico" },
-        { code: "CHL", label: "🇨🇱 Chile" }
+        { code: "ARG", label: "🇦🇷 Argentina" },
+        { code: "VNM", label: "🇻🇳 Vietnam" },
+        { code: "IND", label: "🇮🇳 India" }
       ]
     },
     {
@@ -104,20 +109,15 @@ BarWidget {
       range: "≥ 2.00",
       color: "#4ade80",
       countries: [
-        { code: "WLD", label: "🌍 World" },
-        { code: "IND", label: "🇮🇳 India" },
         { code: "IDN", label: "🇮🇩 Indonesia" },
-        { code: "VNM", label: "🇻🇳 Vietnam" },
-        { code: "PHL", label: "🇵🇭 Philippines" },
-        { code: "TUR", label: "🇹🇷 Turkey" },
+        { code: "WLD", label: "🌍 World" },
         { code: "ZAF", label: "🇿🇦 S.Africa" },
+        { code: "PHL", label: "🇵🇭 Philippines" },
         { code: "EGY", label: "🇪🇬 Egypt" },
-        { code: "PAK", label: "🇵🇰 Pakistan" },
-        { code: "NGA", label: "🇳🇬 Nigeria" },
-        { code: "ETH", label: "🇪🇹 Ethiopia" },
         { code: "KEN", label: "🇰🇪 Kenya" },
-        { code: "ARG", label: "🇦🇷 Argentina" },
-        { code: "COL", label: "🇨🇴 Colombia" }
+        { code: "PAK", label: "🇵🇰 Pakistan" },
+        { code: "ETH", label: "🇪🇹 Ethiopia" },
+        { code: "NGA", label: "🇳🇬 Nigeria" }
       ]
     }
   ]

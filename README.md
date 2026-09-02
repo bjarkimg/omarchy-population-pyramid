@@ -6,13 +6,11 @@ An interactive demographic analysis, population decline tracker, and vertical ag
 
 ## Features
 
-- **7 Flag Quick-Picker Lines, Grouped Into 3 Severity Tiers:**
-  All 42 countries are visible at once — no scrolling. Each tier carries a colored
-  header with its TFR band, and its countries wrap across a fixed number of lines
-  (2 + 3 + 2 = 7):
-  - **🔴 Ultra-Low TFR / Rapid Decline (< 1.3)** — 2 lines: 🇰🇷 S.Korea, 🇹🇼 Taiwan, 🇭🇰 HK, 🇸🇬 Singapore, 🇯🇵 Japan, 🇮🇹 Italy, 🇪🇸 Spain, 🇺🇦 Ukraine, 🇵🇱 Poland, 🇬🇷 Greece, 🇵🇹 Portugal, 🇨🇳 China, 🇹🇭 Thailand
-  - **🟡 Aging & Sub-Replacement (1.3–2.0)** — 3 lines: 🇩🇪 Germany, 🇬🇧 UK, 🇫🇷 France, 🇺🇸 USA, 🇨🇦 Canada, 🇦🇺 Australia, 🇮🇸 Iceland, 🇳🇴 Norway, 🇸🇪 Sweden, 🇫🇮 Finland, 🇩🇰 Denmark, 🇷🇺 Russia, 🇧🇷 Brazil, 🇲🇽 Mexico, 🇨🇱 Chile
-  - **🟢 Growth & Global (≥ 2.0)** — 2 lines: 🌍 World, 🇮🇳 India, 🇮🇩 Indonesia, 🇻🇳 Vietnam, 🇵🇭 Philippines, 🇹🇷 Turkey, 🇿🇦 S.Africa, 🇪🇬 Egypt, 🇵🇰 Pakistan, 🇳🇬 Nigeria, 🇪🇹 Ethiopia, 🇰🇪 Kenya, 🇦🇷 Argentina, 🇨🇴 Colombia
+- **3-Column Country Directory Grouped Strictly by TFR:**
+  All 42 countries categorized into demographic severity columns:
+  - **🔴 Ultra-Low TFR / Rapid Decline (< 1.30):** 🇰🇷 S.Korea, 🇭🇰 Hong Kong, 🇹🇼 Taiwan, 🇺🇦 Ukraine, 🇸🇬 Singapore, 🇨🇳 China, 🇪🇸 Spain, 🇵🇱 Poland, 🇹🇭 Thailand, 🇯🇵 Japan, 🇮🇹 Italy, 🇫🇮 Finland
+  - **🟡 Aging & Sub-Replacement (1.30–2.00):** 🇬🇷 Greece, 🇨🇦 Canada, 🇵🇹 Portugal, 🇩🇪 Germany, 🇳🇴 Norway, 🇷🇺 Russia, 🇸🇪 Sweden, 🇨🇱 Chile, 🇬🇧 UK, 🇩🇰 Denmark, 🇹🇷 Turkey, 🇦🇺 Australia, 🇧🇷 Brazil, 🇮🇸 Iceland, 🇺🇸 USA, 🇨🇴 Colombia, 🇫🇷 France, 🇲🇽 Mexico, 🇦🇷 Argentina, 🇻🇳 Vietnam, 🇮🇳 India
+  - **🟢 Growth & Expanding (≥ 2.00):** 🇮🇩 Indonesia, 🌍 World, 🇿🇦 S.Africa, 🇵🇭 Philippines, 🇪🇬 Egypt, 🇰🇪 Kenya, 🇵🇰 Pakistan, 🇪🇹 Ethiopia, 🇳🇬 Nigeria
 - **Vertical Age-Sex Population Pyramid:** 21 age brackets (0–4 to 100+) with male (cyan) and female (rose) bilateral cohorts and hover tooltips.
 - **Smooth 32-Frame Animation:** Pyramids are generated on the **same 5-year grid as the
   trajectory line chart** (1950–2100, plus the 2026 "now" anchor), so scrubbing the chart
