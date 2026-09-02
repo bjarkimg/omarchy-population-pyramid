@@ -224,7 +224,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(940))
+    contentWidth: panel.fittedContentWidth(mainRow.implicitWidth)
     contentHeight: panel.fittedContentHeight(mainRow.implicitHeight)
 
     PanelKeyCatcher {
@@ -247,7 +247,6 @@ BarWidget {
       Row {
         id: mainRow
         anchors.left: parent.left
-        anchors.right: parent.right
         anchors.top: parent.top
         spacing: Style.space(12)
 
