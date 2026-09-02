@@ -580,7 +580,7 @@ BarWidget {
           Row {
             visible: !root.showingSearchList
             width: parent.width
-            height: Style.space(465)
+            height: Math.max(Style.space(540), leftMainPanel.implicitHeight - searchInput.height - Style.space(38))
             spacing: Style.space(4)
 
             Repeater {
@@ -596,7 +596,7 @@ BarWidget {
                 // Tier Column Header
                 Rectangle {
                   width: parent.width
-                  height: Style.space(34)
+                  height: Style.space(30)
                   color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
                   border.color: Qt.rgba(1, 1, 1, 0.08)
                   radius: 4
@@ -627,7 +627,7 @@ BarWidget {
                 // Vertical list of countries in this tier
                 Flickable {
                   width: parent.width
-                  height: parent.height - Style.space(38)
+                  height: parent.height - Style.space(34)
                   contentHeight: countryBtnCol.implicitHeight
                   clip: true
                   boundsBehavior: Flickable.StopAtBounds
@@ -635,19 +635,19 @@ BarWidget {
                   Column {
                     id: countryBtnCol
                     width: parent.width
-                    spacing: Style.space(2)
+                    spacing: 2
 
                     Repeater {
                       model: tierColumn.tier.countries
 
                       Button {
                         width: parent.width
-                        height: Style.space(24)
+                        height: Style.space(21)
                         text: modelData.label
                         bordered: true
                         selected: modelData.code === root.selectedCountryCode
-                        fontSize: 9
-                        horizontalPadding: Style.space(4)
+                        fontSize: 8.5
+                        horizontalPadding: Style.space(3)
                         onClicked: root.selectCountry(modelData.code)
                       }
                     }
