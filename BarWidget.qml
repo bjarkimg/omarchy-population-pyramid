@@ -224,7 +224,7 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(940))
+    contentWidth: panel.fittedContentWidth(Style.space(960))
     contentHeight: panel.fittedContentHeight(mainRow.implicitHeight + Style.space(16))
 
     PanelKeyCatcher {
@@ -492,7 +492,7 @@ BarWidget {
         // =====================================================================
         Column {
           id: rightSidebar
-          width: Style.space(320)
+          width: Style.space(315)
           spacing: Style.space(7)
 
           // Sidebar Title Header
@@ -512,6 +512,7 @@ BarWidget {
 
             Text {
               anchors.right: parent.right
+              anchors.rightMargin: Style.space(4)
               anchors.verticalCenter: parent.verticalCenter
               text: "42 NATIONS"
               color: Color.muted
