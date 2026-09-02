@@ -49,9 +49,12 @@ N_AGE = len(AGE_GROUPS)
 FERTILE = range(3, 10)          # brackets 15-19 .. 45-49
 CURRENT_YEAR = 2026
 
-# 5-year grid matching the trajectory chart, with 2026 kept as the "now" anchor
+# Two-speed grid: 5-year steps to 2100 (high fidelity), 10-year leaps to 2300 (extinction tail)
 PYRAMID_YEARS = (
-    list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR] + list(range(2030, 2101, 5))
+    list(range(1950, CURRENT_YEAR, 5))
+    + [CURRENT_YEAR]
+    + list(range(2030, 2101, 5))
+    + list(range(2110, 2301, 10))
 )
 
 # Documented sex-ratio-at-birth distortions (son preference), peak year and level.
@@ -290,7 +293,7 @@ def project(country, years):
     for _ in range(45):
         step(1950)
 
-    grid = list(range(1950, 2101, 5))
+    grid = list(range(1950, 2301, 5))
     out = {1950: (list(m), list(f))}
     for y in grid[1:]:
         step(y - 5)
@@ -450,11 +453,11 @@ def calculate_demographics():
         if is_sub_replacement:
             halving_year = int(base_yr + abs(math.log(0.5) / (decline_annual / 100.0)))
             extinction_year = int(base_yr + abs(math.log(0.008) / (decline_annual / 100.0)))
-            end_projection_year = min(2250, max(2126, extinction_year + 5))
+            end_projection_year = 2300
         else:
             halving_year = None
             extinction_year = None
-            end_projection_year = CURRENT_YEAR + 100
+            end_projection_year = 2300
 
         trajectory = []
         for y in list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR]:
@@ -465,7 +468,8 @@ def calculate_demographics():
                 p = pop_1950 + (pop2026 - pop_1950) * (math.sin(t * math.pi / 2.0) ** 1.3)
             trajectory.append({"year": y, "pop": round(p, 2), "historical": True})
 
-        for y in range(2030, end_projection_year + 1, 5):
+        future_years = list(range(2030, 2101, 5)) + list(range(2110, 2301, 10))
+        for y in future_years:
             if is_sub_replacement:
                 if y <= peak_yr:
                     t = (y - CURRENT_YEAR) / max(1, peak_yr - CURRENT_YEAR)

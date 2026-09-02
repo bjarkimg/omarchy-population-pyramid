@@ -41,13 +41,13 @@ BarWidget {
     : (countryList.length > 0 ? countryList[0] : null)
 
   // Year grid comes from the dataset so it cannot drift from build_data.py.
-  // It matches the trajectory chart's 5-year step, plus the "now" anchor.
+  // Two-speed grid: 5-year step from 1950 to 2100 + 10-year step from 2110 to 2300 + 2026 anchor.
   readonly property int currentYear: (dataset && dataset.metadata && dataset.metadata.currentYear)
     ? dataset.metadata.currentYear : 2026
   readonly property var pyramidYearsList: (dataset && dataset.metadata && dataset.metadata.pyramidYears
     && dataset.metadata.pyramidYears.length > 0)
     ? dataset.metadata.pyramidYears
-    : [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100]
+    : [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100, 2110, 2120, 2130, 2140, 2150, 2160, 2170, 2180, 2190, 2200, 2250, 2300]
 
   // 42 countries categorized strictly by 2026 TFR demographic tiers
   readonly property var severityTiers: [
@@ -224,8 +224,8 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(960))
-    contentHeight: panel.fittedContentHeight(mainRow.implicitHeight + Style.space(16))
+    contentWidth: panel.fittedContentWidth(Style.space(930))
+    contentHeight: panel.fittedContentHeight(mainColumn.implicitHeight + Style.space(16))
 
     PanelKeyCatcher {
       id: keyCatcher
@@ -245,378 +245,126 @@ BarWidget {
         }
       }
 
-      Row {
-        id: mainRow
+      Column {
+        id: mainColumn
         anchors.left: parent.left
+        anchors.right: parent.right
         anchors.top: parent.top
-        spacing: Style.space(12)
+        spacing: Style.space(8)
 
         // =====================================================================
-        // LEFT MAIN PANEL: Active Country Demographics, Pyramid & Trajectory
+        // 1. TOP ROW: Left Pyramid & Stats (560px) + Right Boxed Flags (340px)
         // =====================================================================
-        Column {
-          id: leftMainPanel
-          width: Style.space(570)
-          spacing: Style.space(8)
+        Row {
+          width: parent.width
+          spacing: Style.space(12)
 
-          // 1. Header Bar with Country Title & Close Button
-          Item {
-            width: parent.width
-            height: Style.space(26)
+          // -------------------------------------------------------------------
+          // TOP LEFT: Country Header, Vital Statistics & Age-Sex Pyramid
+          // -------------------------------------------------------------------
+          Column {
+            id: topLeftColumn
+            width: Style.space(560)
+            spacing: Style.space(8)
 
-            Text {
-              anchors.left: parent.left
-              anchors.verticalCenter: parent.verticalCenter
-              text: root.currentCountry
-                ? (root.currentCountry.flag + " " + root.currentCountry.name.toUpperCase() + " (" + root.currentCountry.code + ") DEMOGRAPHICS")
-                : "POPULATION & DECLINE TRACKER"
-              color: Color.accent
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-              font.bold: true
-            }
+            // Header Bar with Country Title
+            Item {
+              width: parent.width
+              height: Style.space(26)
 
-            Button {
-              anchors.right: parent.right
-              anchors.verticalCenter: parent.verticalCenter
-              text: "✕"
-              width: Style.space(24)
-              height: Style.space(24)
-              onClicked: root.close()
-            }
-          }
-
-          // 2. Country Vital Statistics Card
-          Rectangle {
-            width: parent.width
-            height: Style.space(72)
-            color: Qt.rgba(0.1, 0.15, 0.22, 0.7)
-            border.color: Qt.rgba(1, 1, 1, 0.12)
-            border.width: 1
-            radius: 8
-
-            Row {
-              anchors.fill: parent
-              anchors.margins: Style.space(6)
-              spacing: Style.space(6)
-
-              // Current Population Card
-              Item {
-                width: (parent.width - Style.space(18)) / 4
-                height: parent.height
-
-                Column {
-                  anchors.centerIn: parent
-                  spacing: 1
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentYear + " POPULATION"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 9
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? (root.currentCountry.population2026 >= 1000 ? (root.currentCountry.population2026/1000).toFixed(2) + "B" : root.currentCountry.population2026.toFixed(1) + "M") : "--"
-                    color: Color.foreground
-                    font.family: Style.font.family
-                    font.pixelSize: 13
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? (root.currentCountry.growthRate2026 > 0 ? "+" : "") + root.currentCountry.growthRate2026.toFixed(2) + "%/yr" : ""
-                    color: root.currentCountry && root.currentCountry.growthRate2026 < 0 ? "#f87171" : "#4ade80"
-                    font.family: Style.font.family
-                    font.pixelSize: 8
-                  }
-                }
-              }
-
-              // Total Fertility Rate (TFR)
-              Item {
-                width: (parent.width - Style.space(18)) / 4
-                height: parent.height
-
-                Column {
-                  anchors.centerIn: parent
-                  spacing: 1
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: "FERTILITY (TFR)"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 9
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? root.currentCountry.tfr.toFixed(2) : "--"
-                    color: {
-                      if (!root.currentCountry) return Color.foreground
-                      if (root.currentCountry.tfr < 1.3) return "#f87171"
-                      if (root.currentCountry.tfr < 2.1) return "#fbbf24"
-                      return "#4ade80"
-                    }
-                    font.family: Style.font.family
-                    font.pixelSize: 13
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry && root.currentCountry.tfr < 2.1 ? "Sub-replacement" : "Above 2.10 Repl"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 8
-                  }
-                }
-              }
-
-              // Peak Population Year
-              Item {
-                width: (parent.width - Style.space(18)) / 4
-                height: parent.height
-
-                Column {
-                  anchors.centerIn: parent
-                  spacing: 1
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: "PEAK YEAR"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 9
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? String(root.currentCountry.peakYear) : "--"
-                    color: root.currentCountry && root.currentCountry.peakYear <= root.currentYear ? "#f87171" : "#38bdf8"
-                    font.family: Style.font.family
-                    font.pixelSize: 13
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? (root.currentCountry.peakPopulation >= 1000 ? (root.currentCountry.peakPopulation/1000).toFixed(2) + "B" : root.currentCountry.peakPopulation.toFixed(1) + "M peak") : ""
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 8
-                  }
-                }
-              }
-
-              // Path to Zero / Extinction Horizon
-              Item {
-                width: (parent.width - Style.space(18)) / 4
-                height: parent.height
-
-                Column {
-                  anchors.centerIn: parent
-                  spacing: 1
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry && root.currentCountry.isSubReplacement ? "PATH TO ZERO" : "100Y GROWTH"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 9
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry ? (root.currentCountry.isSubReplacement ? ("~0: Yr " + root.currentCountry.extinctionYear) : ("Yr 2126: " + (root.currentCountry.pop2100 >= 1000 ? (root.currentCountry.pop2100/1000).toFixed(1) + "B" : root.currentCountry.pop2100.toFixed(0) + "M"))) : "--"
-                    color: root.currentCountry && root.currentCountry.isSubReplacement ? "#f43f5e" : "#4ade80"
-                    font.family: Style.font.family
-                    font.pixelSize: 13
-                    font.bold: true
-                  }
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.currentCountry && root.currentCountry.isSubReplacement ? ("T½ Halving: Yr " + root.currentCountry.halvingYear) : "Expanding population"
-                    color: Color.muted
-                    font.family: Style.font.family
-                    font.pixelSize: 8
-                  }
-                }
+              Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.currentCountry
+                  ? (root.currentCountry.flag + " " + root.currentCountry.name.toUpperCase() + " (" + root.currentCountry.code + ") DEMOGRAPHICS")
+                  : "POPULATION & DECLINE TRACKER"
+                color: Color.accent
+                font.family: Style.font.family
+                font.pixelSize: Style.font.body
+                font.bold: true
               }
             }
-          }
 
-          // 3. Vertical Age-Sex Population Pyramid
-          PopulationPyramid {
-            width: parent.width
-            countryData: root.currentCountry
-            selectedYear: root.selectedYear
-          }
+            // Country Vital Statistics Card
+            Rectangle {
+              width: parent.width
+              height: Style.space(72)
+              color: Qt.rgba(0.1, 0.15, 0.22, 0.7)
+              border.color: Qt.rgba(1, 1, 1, 0.12)
+              border.width: 1
+              radius: 8
 
-          // 4. Continuous Trajectory Line Chart (with increased vertical room)
-          PopulationTrajectoryChart {
-            width: parent.width
-            countryData: root.currentCountry
-            selectedYear: root.selectedYear
-            onYearSelected: function(yr) {
-              var yrNum = parseInt(yr, 10)
-              var closest = String(root.currentYear)
-              var minDiff = 9999
-              for (var i = 0; i < root.pyramidYearsList.length; i++) {
-                var d = Math.abs(root.pyramidYearsList[i] - yrNum)
-                if (d < minDiff) {
-                  minDiff = d
-                  closest = String(root.pyramidYearsList[i])
-                }
-              }
-              root.selectedYear = closest
-            }
-          }
+              Row {
+                anchors.fill: parent
+                anchors.margins: Style.space(6)
+                spacing: Style.space(6)
 
-          // 5. Footer navigation instructions
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "[Space] Play/Pause Animation  ·  [Hover Line Chart] Scrub Years  ·  [Esc] Dismiss"
-            color: Color.muted
-            font.family: Style.font.family
-            font.pixelSize: 9
-          }
-        }
-
-        // Vertical Separator Line
-        Rectangle {
-          width: 1
-          height: leftMainPanel.implicitHeight
-          color: Qt.rgba(1, 1, 1, 0.1)
-        }
-
-        // =====================================================================
-        // RIGHT SIDEBAR: 3-Column Country Directory Grouped by Severity Tier
-        // =====================================================================
-        Column {
-          id: rightSidebar
-          width: Style.space(315)
-          spacing: Style.space(7)
-
-          // Sidebar Title Header
-          Item {
-            width: parent.width
-            height: Style.space(26)
-
-            Text {
-              anchors.left: parent.left
-              anchors.verticalCenter: parent.verticalCenter
-              text: "🌍 DIRECTORY"
-              color: Color.accent
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-              font.bold: true
-            }
-
-            Text {
-              anchors.right: parent.right
-              anchors.rightMargin: Style.space(4)
-              anchors.verticalCenter: parent.verticalCenter
-              text: "42 NATIONS"
-              color: Color.muted
-              font.family: Style.font.family
-              font.pixelSize: Style.font.caption
-              font.bold: true
-            }
-          }
-
-          // Search Input
-          TextField {
-            id: searchInput
-            width: parent.width
-            placeholderText: "Search (e.g. Korea, ISL)..."
-            text: root.searchQuery
-            onTextChanged: {
-              root.searchQuery = text
-              root.showingSearchList = text.trim().length > 0
-            }
-            onAccepted: {
-              if (root.filteredCountries.length > 0) {
-                root.selectCountry(root.filteredCountries[0].code)
-              }
-            }
-          }
-
-          // Search Results Overlay List (when typing in search)
-          Rectangle {
-            visible: root.showingSearchList
-            width: parent.width
-            height: Style.space(460)
-            color: Qt.rgba(0.08, 0.12, 0.18, 0.95)
-            border.color: Color.accent
-            border.width: 1
-            radius: 6
-            clip: true
-
-            Flickable {
-              anchors.fill: parent
-              anchors.margins: Style.space(4)
-              contentHeight: searchListCol.implicitHeight
-              clip: true
-
-              Column {
-                id: searchListCol
-                width: parent.width
-                spacing: 2
-
-                Repeater {
-                  model: root.filteredCountries
-                  Button {
-                    width: parent.width
-                    height: Style.space(26)
-                    text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
-                    bordered: false
-                    selected: modelData.code === root.selectedCountryCode
-                    onClicked: root.selectCountry(modelData.code)
-                  }
-                }
-              }
-            }
-          }
-
-          // 3 Side-by-Side Vertical Columns (1 per Severity Tier)
-          Row {
-            visible: !root.showingSearchList
-            width: parent.width
-            height: Math.max(Style.space(540), leftMainPanel.implicitHeight - searchInput.height - Style.space(38))
-            spacing: Style.space(4)
-
-            Repeater {
-              model: root.severityTiers
-
-              Column {
-                id: tierColumn
-                readonly property var tier: modelData
-                width: (parent.width - Style.space(8)) / 3
-                height: parent.height
-                spacing: Style.space(3)
-
-                // Tier Column Header
-                Rectangle {
-                  width: parent.width
-                  height: Style.space(30)
-                  color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
-                  border.color: Qt.rgba(1, 1, 1, 0.08)
-                  radius: 4
+                // Current Population Card
+                Item {
+                  width: (parent.width - Style.space(18)) / 4
+                  height: parent.height
 
                   Column {
                     anchors.centerIn: parent
                     spacing: 1
-
                     Text {
                       anchors.horizontalCenter: parent.horizontalCenter
-                      text: tierColumn.tier.dot + " " + (tierColumn.tier.key === "critical" ? "CRITICAL" : tierColumn.tier.key === "aging" ? "AGING" : "GROWTH")
-                      color: tierColumn.tier.color
+                      text: root.currentYear + " POPULATION"
+                      color: Color.muted
                       font.family: Style.font.family
                       font.pixelSize: 9
                       font.bold: true
                     }
-
                     Text {
                       anchors.horizontalCenter: parent.horizontalCenter
-                      text: "TFR " + tierColumn.tier.range
+                      text: root.currentCountry ? (root.currentCountry.population2026 >= 1000 ? (root.currentCountry.population2026/1000).toFixed(2) + "B" : root.currentCountry.population2026.toFixed(1) + "M") : "--"
+                      color: Color.foreground
+                      font.family: Style.font.family
+                      font.pixelSize: 13
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry ? (root.currentCountry.growthRate2026 > 0 ? "+" : "") + root.currentCountry.growthRate2026.toFixed(2) + "%/yr" : ""
+                      color: root.currentCountry && root.currentCountry.growthRate2026 < 0 ? "#f87171" : "#4ade80"
+                      font.family: Style.font.family
+                      font.pixelSize: 8
+                    }
+                  }
+                }
+
+                // Total Fertility Rate (TFR)
+                Item {
+                  width: (parent.width - Style.space(18)) / 4
+                  height: parent.height
+
+                  Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: "FERTILITY (TFR)"
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 9
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry ? root.currentCountry.tfr.toFixed(2) : "--"
+                      color: {
+                        if (!root.currentCountry) return Color.foreground
+                        if (root.currentCountry.tfr < 1.3) return "#f87171"
+                        if (root.currentCountry.tfr < 2.1) return "#fbbf24"
+                        return "#4ade80"
+                      }
+                      font.family: Style.font.family
+                      font.pixelSize: 13
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry && root.currentCountry.tfr < 2.1 ? "Sub-replacement" : "Above 2.10 Repl"
                       color: Color.muted
                       font.family: Style.font.family
                       font.pixelSize: 8
@@ -624,31 +372,270 @@ BarWidget {
                   }
                 }
 
-                // Vertical list of countries in this tier
-                Flickable {
-                  width: parent.width
-                  height: parent.height - Style.space(34)
-                  contentHeight: countryBtnCol.implicitHeight
-                  clip: true
-                  boundsBehavior: Flickable.StopAtBounds
+                // Peak Population Year
+                Item {
+                  width: (parent.width - Style.space(18)) / 4
+                  height: parent.height
 
                   Column {
-                    id: countryBtnCol
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: "PEAK YEAR"
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 9
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry ? String(root.currentCountry.peakYear) : "--"
+                      color: root.currentCountry && root.currentCountry.peakYear <= root.currentYear ? "#f87171" : "#38bdf8"
+                      font.family: Style.font.family
+                      font.pixelSize: 13
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry ? (root.currentCountry.peakPopulation >= 1000 ? (root.currentCountry.peakPopulation/1000).toFixed(2) + "B" : root.currentCountry.peakPopulation.toFixed(1) + "M peak") : ""
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 8
+                    }
+                  }
+                }
+
+                // Path to Zero / Extinction Horizon
+                Item {
+                  width: (parent.width - Style.space(18)) / 4
+                  height: parent.height
+
+                  Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry && root.currentCountry.isSubReplacement ? "PATH TO ZERO" : "100Y GROWTH"
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 9
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry ? (root.currentCountry.isSubReplacement ? ("~0: Yr " + root.currentCountry.extinctionYear) : ("Yr 2126: " + (root.currentCountry.pop2100 >= 1000 ? (root.currentCountry.pop2100/1000).toFixed(1) + "B" : root.currentCountry.pop2100.toFixed(0) + "M"))) : "--"
+                      color: root.currentCountry && root.currentCountry.isSubReplacement ? "#f43f5e" : "#4ade80"
+                      font.family: Style.font.family
+                      font.pixelSize: 13
+                      font.bold: true
+                    }
+                    Text {
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      text: root.currentCountry && root.currentCountry.isSubReplacement ? ("T½ Halving: Yr " + root.currentCountry.halvingYear) : "Expanding population"
+                      color: Color.muted
+                      font.family: Style.font.family
+                      font.pixelSize: 8
+                    }
+                  }
+                }
+              }
+            }
+
+            // Vertical Age-Sex Population Pyramid
+            PopulationPyramid {
+              width: parent.width
+              countryData: root.currentCountry
+              selectedYear: root.selectedYear
+            }
+          }
+
+          // -------------------------------------------------------------------
+          // TOP RIGHT: Boxed-In Flag Directory Card
+          // -------------------------------------------------------------------
+          Rectangle {
+            id: topRightBox
+            width: Style.space(340)
+            height: topLeftColumn.implicitHeight
+            color: Qt.rgba(0.08, 0.12, 0.18, 0.75)
+            border.color: Qt.rgba(1, 1, 1, 0.12)
+            border.width: 1
+            radius: 8
+            clip: true
+
+            Column {
+              anchors.fill: parent
+              anchors.margins: Style.space(8)
+              spacing: Style.space(6)
+
+              // Directory Header Bar with Close Button
+              Item {
+                width: parent.width
+                height: Style.space(26)
+
+                Text {
+                  anchors.left: parent.left
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "🌍 DIRECTORY"
+                  color: Color.accent
+                  font.family: Style.font.family
+                  font.pixelSize: Style.font.body
+                  font.bold: true
+                }
+
+                Row {
+                  anchors.right: parent.right
+                  anchors.verticalCenter: parent.verticalCenter
+                  spacing: Style.space(6)
+
+                  Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "42 NATIONS"
+                    color: Color.muted
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                    font.bold: true
+                  }
+
+                  Button {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "✕"
+                    width: Style.space(22)
+                    height: Style.space(22)
+                    onClicked: root.close()
+                  }
+                }
+              }
+
+              // Search Input
+              TextField {
+                id: searchInput
+                width: parent.width
+                placeholderText: "Search (e.g. Korea, ISL)..."
+                text: root.searchQuery
+                onTextChanged: {
+                  root.searchQuery = text
+                  root.showingSearchList = text.trim().length > 0
+                }
+                onAccepted: {
+                  if (root.filteredCountries.length > 0) {
+                    root.selectCountry(root.filteredCountries[0].code)
+                  }
+                }
+              }
+
+              // Search Results Overlay List (when typing in search)
+              Rectangle {
+                visible: root.showingSearchList
+                width: parent.width
+                height: parent.height - searchInput.height - Style.space(38)
+                color: Qt.rgba(0.08, 0.12, 0.18, 0.95)
+                border.color: Color.accent
+                border.width: 1
+                radius: 6
+                clip: true
+
+                Flickable {
+                  anchors.fill: parent
+                  anchors.margins: Style.space(4)
+                  contentHeight: searchListCol.implicitHeight
+                  clip: true
+
+                  Column {
+                    id: searchListCol
                     width: parent.width
                     spacing: 2
 
                     Repeater {
-                      model: tierColumn.tier.countries
-
+                      model: root.filteredCountries
                       Button {
                         width: parent.width
-                        height: Style.space(21)
-                        text: modelData.label
-                        bordered: true
+                        height: Style.space(24)
+                        text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
+                        bordered: false
                         selected: modelData.code === root.selectedCountryCode
-                        fontSize: 8.5
-                        horizontalPadding: Style.space(3)
                         onClicked: root.selectCountry(modelData.code)
+                      }
+                    }
+                  }
+                }
+              }
+
+              // 3 Side-by-Side Vertical Columns (1 per Severity Tier)
+              Row {
+                visible: !root.showingSearchList
+                width: parent.width
+                height: parent.height - searchInput.height - Style.space(38)
+                spacing: Style.space(4)
+
+                Repeater {
+                  model: root.severityTiers
+
+                  Column {
+                    id: tierColumn
+                    readonly property var tier: modelData
+                    width: (parent.width - Style.space(8)) / 3
+                    height: parent.height
+                    spacing: Style.space(3)
+
+                    // Tier Column Header
+                    Rectangle {
+                      width: parent.width
+                      height: Style.space(28)
+                      color: Qt.rgba(0.1, 0.14, 0.2, 0.8)
+                      border.color: Qt.rgba(1, 1, 1, 0.08)
+                      radius: 4
+
+                      Column {
+                        anchors.centerIn: parent
+                        spacing: 1
+
+                        Text {
+                          anchors.horizontalCenter: parent.horizontalCenter
+                          text: tierColumn.tier.dot + " " + (tierColumn.tier.key === "critical" ? "CRITICAL" : tierColumn.tier.key === "aging" ? "AGING" : "GROWTH")
+                          color: tierColumn.tier.color
+                          font.family: Style.font.family
+                          font.pixelSize: 9
+                          font.bold: true
+                        }
+
+                        Text {
+                          anchors.horizontalCenter: parent.horizontalCenter
+                          text: "TFR " + tierColumn.tier.range
+                          color: Color.muted
+                          font.family: Style.font.family
+                          font.pixelSize: 8
+                        }
+                      }
+                    }
+
+                    // Vertical list of countries in this tier
+                    Flickable {
+                      width: parent.width
+                      height: parent.height - Style.space(32)
+                      contentHeight: countryBtnCol.implicitHeight
+                      clip: true
+                      boundsBehavior: Flickable.StopAtBounds
+
+                      Column {
+                        id: countryBtnCol
+                        width: parent.width
+                        spacing: 2
+
+                        Repeater {
+                          model: tierColumn.tier.countries
+
+                          Button {
+                            width: parent.width
+                            height: Style.space(20)
+                            text: modelData.label
+                            bordered: true
+                            selected: modelData.code === root.selectedCountryCode
+                            fontSize: 9
+                            horizontalPadding: Style.space(3)
+                            onClicked: root.selectCountry(modelData.code)
+                          }
+                        }
                       }
                     }
                   }
@@ -656,6 +643,39 @@ BarWidget {
               }
             }
           }
+        }
+
+        // =====================================================================
+        // 2. BOTTOM FULL-WIDTH SECTION: Continuous Trajectory Line Chart
+        // =====================================================================
+        PopulationTrajectoryChart {
+          width: parent.width
+          countryData: root.currentCountry
+          selectedYear: root.selectedYear
+          onYearSelected: function(yr) {
+            var yrNum = parseInt(yr, 10)
+            var closest = String(root.currentYear)
+            var minDiff = 9999
+            for (var i = 0; i < root.pyramidYearsList.length; i++) {
+              var d = Math.abs(root.pyramidYearsList[i] - yrNum)
+              if (d < minDiff) {
+                minDiff = d
+                closest = String(root.pyramidYearsList[i])
+              }
+            }
+            root.selectedYear = closest
+          }
+        }
+
+        // =====================================================================
+        // 3. FOOTER CONTROLS INSTRUCTIONS
+        // =====================================================================
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: "[Space] Play/Pause Animation  ·  [Hover Line Chart] Scrub Years (1950–2300)  ·  [Esc] Dismiss"
+          color: Color.muted
+          font.family: Style.font.family
+          font.pixelSize: 9
         }
       }
     }

@@ -29,8 +29,8 @@ Item {
     return Math.max(m * 1.18, 1.0)
   }
 
-  implicitWidth: Style.space(570)
-  implicitHeight: Style.space(200)
+  implicitWidth: Style.space(912)
+  implicitHeight: Style.space(165)
 
   function formatPop(val) {
     if (val === undefined || val === null || isNaN(val)) return "--"
@@ -95,7 +95,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text: root.isHovered && root.hoveredYear > 0
           ? ("Yr " + root.hoveredYear + ": " + root.formatPop(root.hoveredPop))
-          : ("Scrub " + root.startYear + "–" + root.endYear)
+          : ("Hover / Drag to Scrub Timeline (" + root.startYear + "–" + root.endYear + ")")
         color: root.isHovered ? Color.foreground : Color.muted
         font.family: Style.font.family
         font.pixelSize: 9
@@ -105,7 +105,7 @@ Item {
     // Canvas Line Chart
     Rectangle {
       width: parent.width
-      height: Style.space(172)
+      height: Style.space(136)
       color: Qt.rgba(0.06, 0.09, 0.14, 0.95)
       border.color: Qt.rgba(1, 1, 1, 0.1)
       border.width: 1
@@ -126,8 +126,8 @@ Item {
 
           var marginL = 40
           var marginR = 24
-          var marginT = 18
-          var marginB = 26
+          var marginT = 16
+          var marginB = 24
           var plotW = width - marginL - marginR
           var plotH = height - marginT - marginB
 
@@ -160,19 +160,23 @@ Item {
           // X-axis milestone labels
           ctx.textAlign = "center"
           ctx.textBaseline = "top"
-          var xLabels = [1950, 2000, 2026]
+          var xLabels = [1950, 2000, 2026, 2100]
           if (root.isSubReplacement) {
-            if (root.countryData.peakYear > 2026) xLabels.push(root.countryData.peakYear)
-            if (root.countryData.halvingYear) xLabels.push(root.countryData.halvingYear)
+            if (root.countryData.peakYear > 2026 && root.countryData.peakYear < 2100) xLabels.push(root.countryData.peakYear)
+            if (root.countryData.halvingYear && root.countryData.halvingYear < 2250) xLabels.push(root.countryData.halvingYear)
             if (root.countryData.extinctionYear) xLabels.push(root.countryData.extinctionYear)
+            if (root.endYear >= 2200 && !xLabels.includes(2200)) xLabels.push(2200)
+            if (root.endYear >= 2300 && !xLabels.includes(2300)) xLabels.push(2300)
           } else {
-            xLabels.push(2050, 2080, 2126)
+            xLabels.push(2050, 2100, 2200, 2300)
           }
+
+          xLabels.sort(function(a, b) { return a - b })
 
           var lastLabelX = -999
           for (var xi = 0; xi < xLabels.length; xi++) {
             var lx = root.getX(xLabels[xi], plotW, marginL)
-            if (lx - lastLabelX >= 38) {
+            if (lx - lastLabelX >= 42) {
               ctx.fillText(String(xLabels[xi]), lx, marginT + plotH + 5)
               lastLabelX = lx
             }
