@@ -224,12 +224,13 @@ BarWidget {
     open: root.popupOpen
     centerOnBar: true
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(mainRow.implicitWidth)
-    contentHeight: panel.fittedContentHeight(mainRow.implicitHeight)
+    contentWidth: panel.fittedContentWidth(Style.space(940))
+    contentHeight: panel.fittedContentHeight(mainRow.implicitHeight + Style.space(16))
 
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
+      anchors.margins: Style.space(8)
       blocked: searchInput.activeFocus
 
       onMoveRequested: function(dx, dy) {
@@ -255,7 +256,7 @@ BarWidget {
         // =====================================================================
         Column {
           id: leftMainPanel
-          width: Style.space(590)
+          width: Style.space(570)
           spacing: Style.space(8)
 
           // 1. Header Bar with Country Title & Close Button
@@ -491,7 +492,7 @@ BarWidget {
         // =====================================================================
         Column {
           id: rightSidebar
-          width: Style.space(330)
+          width: Style.space(320)
           spacing: Style.space(7)
 
           // Sidebar Title Header
