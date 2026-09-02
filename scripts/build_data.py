@@ -288,12 +288,12 @@ def project(country, years):
         nm[0] = births * (srb / (1.0 + srb)) * bm
         nf[0] = births * (1.0 / (1.0 + srb)) * bf
         m, f = nm, nf
-
     # burn-in at 1950 rates so the 1950 frame is a settled age structure
     for _ in range(45):
         step(1950)
 
-    grid = list(range(1950, 2301, 5))
+    max_yr = max(years)
+    grid = list(range(1950, max_yr + 6, 5))
     out = {1950: (list(m), list(f))}
     for y in grid[1:]:
         step(y - 5)
@@ -310,7 +310,25 @@ def project(country, years):
             [mlo[i] + (mhi[i] - mlo[i]) * t for i in range(N_AGE)],
             [flo[i] + (fhi[i] - flo[i]) * t for i in range(N_AGE)],
         )
-    return {y: out[y] for y in years}
+
+    result = {}
+    for y in years:
+        if y in out:
+            result[y] = out[y]
+        else:
+            lo = max(k for k in out if k <= y)
+            hi = min(k for k in out if k >= y)
+            if lo == hi:
+                result[y] = out[lo]
+            else:
+                t = (y - lo) / float(hi - lo)
+                mlo, flo = out[lo]
+                mhi, fhi = out[hi]
+                result[y] = (
+                    [mlo[i] + (mhi[i] - mlo[i]) * t for i in range(N_AGE)],
+                    [flo[i] + (fhi[i] - flo[i]) * t for i in range(N_AGE)],
+                )
+    return result
 
 
 # ------------------------------------------------------------------- metrics
@@ -380,13 +398,6 @@ def calculate_demographics():
     for code, name, flag, tfr, pop2026, growth_rate, peak_yr, peak_pop, med_age, category in COUNTRY_PROFILES:
         is_sub_replacement = tfr < 2.10
 
-        tfr_1950, achieved_median = calibrate_tfr_1950(code, tfr, med_age, PYRAMID_YEARS)
-        diagnostics.append((code, med_age, achieved_median, tfr_1950))
-
-        country = Country(code, tfr, med_age, tfr_1950)
-        frames = project(country, PYRAMID_YEARS)
-
-        # ---- population trajectory (level), unchanged model + the 2026 anchor point
         if tfr < 0.85:
             decline_annual = -1.35
         elif tfr < 1.15:
@@ -402,23 +413,54 @@ def calculate_demographics():
 
         if is_sub_replacement:
             pop_1950 = pop2026 * 0.40 if code != "WLD" else 2500.0
-        else:
-            pop_1950 = pop2026 * 0.22
 
-        if peak_yr <= CURRENT_YEAR:
-            base_yr, base_pop = CURRENT_YEAR, pop2026
-        else:
-            base_yr, base_pop = peak_yr, peak_pop
+            # Exact halving year
+            halving_year = peak_yr
+            for y in range(peak_yr, 5000):
+                ypp = y - peak_yr
+                accel = (decline_annual / 100.0) * (1.0 + (ypp / 100.0) * 0.35)
+                p = peak_pop * math.exp(accel * ypp)
+                if p <= peak_pop * 0.5:
+                    halving_year = y
+                    break
 
-        if is_sub_replacement:
-            halving_year = int(base_yr + abs(math.log(0.5) / (decline_annual / 100.0)))
-            extinction_year = int(base_yr + abs(math.log(0.008) / (decline_annual / 100.0)))
-            end_projection_year = 2300
+            # Exact extinction / zero year (population < 0.02M or 1/1000 of peak)
+            zero_threshold = max(0.01, peak_pop * 0.001)
+            extinction_year = peak_yr
+            for y in range(peak_yr, 5000):
+                ypp = y - peak_yr
+                accel = (decline_annual / 100.0) * (1.0 + (ypp / 100.0) * 0.35)
+                p = peak_pop * math.exp(accel * ypp)
+                if p <= zero_threshold:
+                    extinction_year = y
+                    break
+
+            end_projection_year = extinction_year
+
+            # Country-specific timeline:
+            country_years = list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR] + list(range(2030, min(2101, extinction_year), 5))
+            if extinction_year > 2100:
+                country_years += list(range(2110, min(2401, extinction_year), 10))
+            if extinction_year > 2400:
+                country_years += list(range(2420, extinction_year, 20))
+            if extinction_year not in country_years:
+                country_years.append(extinction_year)
+            country_years.sort()
         else:
             halving_year = None
             extinction_year = None
-            end_projection_year = 2300
+            end_projection_year = 2126
+            pop_1950 = pop2026 * 0.22
+            country_years = list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR] + list(range(2030, 2126, 5)) + [2126]
+            country_years.sort()
 
+        tfr_1950, achieved_median = calibrate_tfr_1950(code, tfr, med_age, country_years)
+        diagnostics.append((code, med_age, achieved_median, tfr_1950))
+
+        country = Country(code, tfr, med_age, tfr_1950)
+        frames = project(country, country_years)
+
+        # Build trajectory points for this country
         trajectory = []
         for y in list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR]:
             if y == CURRENT_YEAR:
@@ -428,17 +470,19 @@ def calculate_demographics():
                 p = pop_1950 + (pop2026 - pop_1950) * (math.sin(t * math.pi / 2.0) ** 1.3)
             trajectory.append({"year": y, "pop": round(p, 2), "historical": True})
 
-        future_years = list(range(2030, 2101, 5)) + list(range(2110, 2301, 10))
+        future_years = [y for y in country_years if y > CURRENT_YEAR]
         for y in future_years:
             if is_sub_replacement:
                 if y <= peak_yr:
                     t = (y - CURRENT_YEAR) / max(1, peak_yr - CURRENT_YEAR)
                     p = pop2026 + (peak_pop - pop2026) * math.sin(t * math.pi / 2.0)
+                elif y >= extinction_year:
+                    p = 0.0
                 else:
                     years_past_peak = y - peak_yr
                     accel = (decline_annual / 100.0) * (1.0 + (years_past_peak / 100.0) * 0.35)
                     p = peak_pop * math.exp(accel * years_past_peak)
-                    if p < 0.05:
+                    if p <= zero_threshold:
                         p = 0.0
             else:
                 growth_t = (y - CURRENT_YEAR) / 100.0
@@ -450,7 +494,7 @@ def calculate_demographics():
         max_pop_anchor = max(pop2026, peak_pop, 0.1)
 
         pyramids = {}
-        for yr in PYRAMID_YEARS:
+        for yr in country_years:
             mc, fc = frames[yr]
             total = sum(mc) + sum(fc)
             m_pct = [round(v / total * 100.0, 3) for v in mc]
@@ -523,6 +567,7 @@ def calculate_demographics():
             "halvingYear": halving_year,
             "extinctionYear": extinction_year,
             "trajectoryEndYear": end_projection_year,
+            "trajectoryYears": country_years,
             "trajectory": trajectory,
             "pyramids": pyramids
         }

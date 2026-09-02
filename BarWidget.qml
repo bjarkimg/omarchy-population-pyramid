@@ -40,14 +40,12 @@ BarWidget {
     ? dataset.countries[selectedCountryCode]
     : (countryList.length > 0 ? countryList[0] : null)
 
-  // Year grid comes from the dataset so it cannot drift from build_data.py.
-  // Two-speed grid: 5-year step from 1950 to 2100 + 10-year step from 2110 to 2300 + 2026 anchor.
+  // Year grid comes from the active country trajectory so scrubbing matches its exact zero horizon
   readonly property int currentYear: (dataset && dataset.metadata && dataset.metadata.currentYear)
     ? dataset.metadata.currentYear : 2026
-  readonly property var pyramidYearsList: (dataset && dataset.metadata && dataset.metadata.pyramidYears
-    && dataset.metadata.pyramidYears.length > 0)
-    ? dataset.metadata.pyramidYears
-    : [1950, 1970, 1990, 2000, 2010, 2020, 2026, 2030, 2040, 2050, 2060, 2070, 2080, 2090, 2100, 2110, 2120, 2130, 2140, 2150, 2160, 2170, 2180, 2190, 2200, 2250, 2300]
+  readonly property var pyramidYearsList: (currentCountry && currentCountry.trajectoryYears && currentCountry.trajectoryYears.length > 0)
+    ? currentCountry.trajectoryYears
+    : ((dataset && dataset.metadata && dataset.metadata.pyramidYears) ? dataset.metadata.pyramidYears : [1950, 2026, 2100])
 
   // 42 countries categorized strictly by 2026 TFR demographic tiers
   readonly property var severityTiers: [
@@ -672,7 +670,7 @@ BarWidget {
         // =====================================================================
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: "[Space] Play/Pause Animation  ·  [Hover Line Chart] Scrub Years (1950–2300)  ·  [Esc] Dismiss"
+          text: "[Space] Play/Pause Animation  ·  [Hover Line Chart] Scrub Timeline (1950–" + (root.currentCountry ? (root.currentCountry.trajectoryEndYear || 2300) : "2300") + ")  ·  [Esc] Dismiss"
           color: Color.muted
           font.family: Style.font.family
           font.pixelSize: 9

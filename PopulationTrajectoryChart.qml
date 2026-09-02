@@ -160,15 +160,17 @@ Item {
           // X-axis milestone labels
           ctx.textAlign = "center"
           ctx.textBaseline = "top"
-          var xLabels = [1950, 2000, 2026, 2100]
-          if (root.isSubReplacement) {
-            if (root.countryData.peakYear > 2026 && root.countryData.peakYear < 2100) xLabels.push(root.countryData.peakYear)
-            if (root.countryData.halvingYear && root.countryData.halvingYear < 2250) xLabels.push(root.countryData.halvingYear)
+          var xLabels = [1950, 2000, 2026]
+          if (root.isSubReplacement && root.countryData) {
+            if (root.countryData.peakYear > 2026) xLabels.push(root.countryData.peakYear)
+            if (root.countryData.halvingYear) xLabels.push(root.countryData.halvingYear)
             if (root.countryData.extinctionYear) xLabels.push(root.countryData.extinctionYear)
-            if (root.endYear >= 2200 && !xLabels.includes(2200)) xLabels.push(2200)
-            if (root.endYear >= 2300 && !xLabels.includes(2300)) xLabels.push(2300)
+            var stepCen = (root.endYear - 2026 > 600) ? 200 : 100
+            for (var cen = 2100; cen < root.endYear - 50; cen += stepCen) {
+              xLabels.push(cen)
+            }
           } else {
-            xLabels.push(2050, 2100, 2200, 2300)
+            xLabels.push(2050, 2080, root.endYear)
           }
 
           xLabels.sort(function(a, b) { return a - b })
@@ -176,7 +178,7 @@ Item {
           var lastLabelX = -999
           for (var xi = 0; xi < xLabels.length; xi++) {
             var lx = root.getX(xLabels[xi], plotW, marginL)
-            if (lx - lastLabelX >= 42) {
+            if (lx - lastLabelX >= 40 && (plotW + marginL - lx) >= 12) {
               ctx.fillText(String(xLabels[xi]), lx, marginT + plotH + 5)
               lastLabelX = lx
             }
