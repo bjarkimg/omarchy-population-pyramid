@@ -31,7 +31,7 @@ Item {
   }
 
   implicitWidth: Style.space(912)
-  implicitHeight: Style.space(165)
+  implicitHeight: Style.space(182)
 
   function formatPop(val) {
     if (val === undefined || val === null || isNaN(val)) return "--"
@@ -626,6 +626,23 @@ Item {
           root.isHovered = false
           canvas.requestPaint()
         }
+      }
+    }
+
+    // Footnote on data compounding and step intervals
+    Item {
+      width: parent.width
+      height: Style.space(14)
+
+      Text {
+        anchors.left: parent.left
+        anchors.leftMargin: Style.space(4)
+        anchors.verticalCenter: parent.verticalCenter
+        textFormat: Text.PlainText
+        text: "* Note: Each bar and line dot is compounded in 5-year intervals (1950–2100), then every 10 years (2100–2400), and every 20 years thereafter; net change is annualized."
+        color: Qt.rgba(1, 1, 1, 0.38)
+        font.family: Style.font.family
+        font.pixelSize: 7
       }
     }
   }
