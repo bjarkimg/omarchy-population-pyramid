@@ -68,6 +68,52 @@ SRB_DISTORTION = {
 }
 SRB_BASE = 1.05
 
+# UN WPP historical 1950 population estimates (in millions) for model baseline anchors.
+HISTORICAL_1950_POP = {
+    "WLD": 2500.0,
+    "KOR": 19.2,
+    "TWN": 7.6,
+    "HKG": 2.0,
+    "SGP": 1.0,
+    "JPN": 82.8,
+    "ITA": 46.6,
+    "ESP": 28.1,
+    "UKR": 37.3,
+    "POL": 24.8,
+    "GRC": 7.6,
+    "PRT": 8.4,
+    "CHN": 544.0,
+    "DEU": 69.8,
+    "GBR": 50.6,
+    "FRA": 41.8,
+    "USA": 158.8,
+    "CAN": 13.7,
+    "AUS": 8.2,
+    "ISL": 0.14,
+    "NOR": 3.28,
+    "SWE": 7.04,
+    "FIN": 4.01,
+    "DNK": 4.28,
+    "RUS": 102.8,
+    "BRA": 53.9,
+    "MEX": 27.8,
+    "THA": 20.7,
+    "VNM": 28.3,
+    "IND": 376.0,
+    "IDN": 69.5,
+    "PHL": 18.6,
+    "TUR": 21.4,
+    "EGY": 20.4,
+    "PAK": 37.5,
+    "NGA": 37.9,
+    "ZAF": 13.6,
+    "ETH": 18.1,
+    "KEN": 6.1,
+    "ARG": 17.1,
+    "CHL": 6.1,
+    "COL": 12.3,
+}
+
 COUNTRY_PROFILES = [
     ("WLD", "World", "🌍", 2.21, 8180.0, 0.84, 2084, 10290.0, 31.0, "Global"),
     ("KOR", "South Korea", "🇰🇷", 0.72, 51.6, -0.65, 2020, 51.8, 45.2, "Rapid Decline"),
@@ -412,47 +458,51 @@ def calculate_demographics():
             decline_annual = 0.0
 
         if is_sub_replacement:
-            pop_1950 = pop2026 * 0.40 if code != "WLD" else 2500.0
-
-            # Exact halving year
-            halving_year = peak_yr
-            for y in range(peak_yr, 5000):
-                ypp = y - peak_yr
-                accel = (decline_annual / 100.0) * (1.0 + (ypp / 100.0) * 0.35)
-                p = peak_pop * math.exp(accel * ypp)
-                if p <= peak_pop * 0.5:
-                    halving_year = y
-                    break
-
-            # Exact extinction / zero year (population < 0.02M or 1/1000 of peak)
+            pop_1950 = HISTORICAL_1950_POP.get(code, pop2026 * 0.40) if code != "WLD" else 2500.0
             zero_threshold = max(0.01, peak_pop * 0.001)
-            extinction_year = peak_yr
-            for y in range(peak_yr, 5000):
-                ypp = y - peak_yr
+
+            # Determine start year and baseline population for post-peak / future decline
+            start_decay_year = CURRENT_YEAR if peak_yr <= CURRENT_YEAR else peak_yr
+            start_decay_pop = pop2026 if peak_yr <= CURRENT_YEAR else peak_pop
+
+            halving_year = None
+            extinction_year = None
+
+            for y in range(start_decay_year, 6000):
+                ypp = y - start_decay_year
                 accel = (decline_annual / 100.0) * (1.0 + (ypp / 100.0) * 0.35)
-                p = peak_pop * math.exp(accel * ypp)
+                p = start_decay_pop * math.exp(accel * ypp)
+                if halving_year is None and p <= peak_pop * 0.5:
+                    halving_year = y
                 if p <= zero_threshold:
                     extinction_year = y
                     break
+
+            if halving_year is None:
+                halving_year = start_decay_year + 50
+            if extinction_year is None:
+                extinction_year = start_decay_year + 200
 
             end_projection_year = extinction_year
 
             # Country-specific timeline:
             country_years = list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR] + list(range(2030, min(2101, extinction_year), 5))
+            if peak_yr not in country_years and 1950 <= peak_yr <= extinction_year:
+                country_years.append(peak_yr)
             if extinction_year > 2100:
                 country_years += list(range(2110, min(2401, extinction_year), 10))
             if extinction_year > 2400:
                 country_years += list(range(2420, extinction_year, 20))
             if extinction_year not in country_years:
                 country_years.append(extinction_year)
-            country_years.sort()
+            country_years = sorted(list(set(country_years)))
         else:
             halving_year = None
             extinction_year = None
             end_projection_year = 2126
-            pop_1950 = pop2026 * 0.22
+            pop_1950 = HISTORICAL_1950_POP.get(code, pop2026 * 0.22)
             country_years = list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR] + list(range(2030, 2126, 5)) + [2126]
-            country_years.sort()
+            country_years = sorted(list(set(country_years)))
 
         tfr_1950, achieved_median = calibrate_tfr_1950(code, tfr, med_age, country_years)
         diagnostics.append((code, med_age, achieved_median, tfr_1950))
@@ -462,28 +512,48 @@ def calculate_demographics():
 
         # Build trajectory points for this country
         trajectory = []
-        for y in list(range(1950, CURRENT_YEAR, 5)) + [CURRENT_YEAR]:
+        historical_years = [y for y in country_years if y <= CURRENT_YEAR]
+        historical_years.sort()
+
+        for y in historical_years:
             if y == CURRENT_YEAR:
                 p = pop2026
+            elif is_sub_replacement and peak_yr <= CURRENT_YEAR:
+                if y <= peak_yr:
+                    t = (y - 1950) / float(max(1, peak_yr - 1950))
+                    p = pop_1950 + (peak_pop - pop_1950) * (math.sin(t * math.pi / 2.0) ** 1.3)
+                else:
+                    t = (y - peak_yr) / float(CURRENT_YEAR - peak_yr)
+                    st = t * t * (3.0 - 2.0 * t)
+                    p = peak_pop + (pop2026 - peak_pop) * st
             else:
                 t = (y - 1950) / float(CURRENT_YEAR - 1950)
                 p = pop_1950 + (pop2026 - pop_1950) * (math.sin(t * math.pi / 2.0) ** 1.3)
             trajectory.append({"year": y, "pop": round(p, 2), "historical": True})
 
         future_years = [y for y in country_years if y > CURRENT_YEAR]
+        future_years.sort()
+
         for y in future_years:
             if is_sub_replacement:
-                if y <= peak_yr:
-                    t = (y - CURRENT_YEAR) / max(1, peak_yr - CURRENT_YEAR)
-                    p = pop2026 + (peak_pop - pop2026) * math.sin(t * math.pi / 2.0)
-                elif y >= extinction_year:
-                    p = 0.0
-                else:
-                    years_past_peak = y - peak_yr
-                    accel = (decline_annual / 100.0) * (1.0 + (years_past_peak / 100.0) * 0.35)
-                    p = peak_pop * math.exp(accel * years_past_peak)
+                if peak_yr <= CURRENT_YEAR:
+                    years_past_2026 = y - CURRENT_YEAR
+                    accel = (decline_annual / 100.0) * (1.0 + (years_past_2026 / 100.0) * 0.35)
+                    p = pop2026 * math.exp(accel * years_past_2026)
                     if p <= zero_threshold:
                         p = 0.0
+                else:
+                    if y <= peak_yr:
+                        t = (y - CURRENT_YEAR) / float(peak_yr - CURRENT_YEAR)
+                        p = pop2026 + (peak_pop - pop2026) * math.sin(t * math.pi / 2.0)
+                    elif y >= extinction_year:
+                        p = 0.0
+                    else:
+                        years_past_peak = y - peak_yr
+                        accel = (decline_annual / 100.0) * (1.0 + (years_past_peak / 100.0) * 0.35)
+                        p = peak_pop * math.exp(accel * years_past_peak)
+                        if p <= zero_threshold:
+                            p = 0.0
             else:
                 growth_t = (y - CURRENT_YEAR) / 100.0
                 factor = (growth_rate / 100.0) * max(0.2, 1.0 - growth_t * 0.6)
