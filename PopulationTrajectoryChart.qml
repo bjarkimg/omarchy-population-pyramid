@@ -12,6 +12,7 @@ Item {
   property int hoveredYear: -1
   property real hoveredPop: -1
   property bool isHovered: false
+  property bool showChangeColumns: true
 
   readonly property var trajectory: (countryData && countryData.trajectory) ? countryData.trajectory : []
   readonly property bool isSubReplacement: countryData ? (countryData.isSubReplacement === true) : true
@@ -66,8 +67,61 @@ Item {
     return closest
   }
 
+  function getRateData(targetYear) {
+    if (!trajectory || trajectory.length < 2) return null
+    var idx = -1
+    for (var i = 0; i < trajectory.length; i++) {
+      if (trajectory[i].year === targetYear) {
+        idx = i
+        break
+      }
+    }
+    if (idx < 0) {
+      var minD = 9999
+      for (var j = 0; j < trajectory.length; j++) {
+        var d = Math.abs(trajectory[j].year - targetYear)
+        if (d < minD) {
+          minD = d
+          idx = j
+        }
+      }
+    }
+    if (idx < 0) return null
+
+    var cur = trajectory[idx]
+    var prev = idx > 0 ? trajectory[idx - 1] : cur
+    var next = idx < trajectory.length - 1 ? trajectory[idx + 1] : cur
+
+    var dt = 0
+    var dp = 0
+    if (idx > 0) {
+      dt = cur.year - prev.year
+      dp = cur.pop - prev.pop
+    } else if (idx < trajectory.length - 1) {
+      dt = next.year - cur.year
+      dp = next.pop - cur.pop
+    }
+
+    var netAnnual = dt !== 0 ? (dp / dt) : 0.0
+    var pctAnnual = cur.pop > 0 ? ((netAnnual / cur.pop) * 100.0) : 0.0
+    var pop2026 = root.countryData ? (root.countryData.population2026 || cur.pop) : cur.pop
+    var delta2026 = cur.pop - pop2026
+
+    return {
+      year: cur.year,
+      pop: cur.pop,
+      netAnnual: netAnnual,
+      pctAnnual: pctAnnual,
+      delta2026: delta2026
+    }
+  }
+
+  readonly property int activeYear: (root.isHovered && root.hoveredYear > 0) ? root.hoveredYear : parseInt(root.selectedYear, 10)
+  readonly property var activeRate: getRateData(activeYear)
+
   onCountryDataChanged: canvas.requestPaint()
   onSelectedYearChanged: canvas.requestPaint()
+  onShowChangeColumnsChanged: canvas.requestPaint()
 
   Column {
     anchors.fill: parent
@@ -90,7 +144,7 @@ Item {
         font.bold: true
       }
 
-      // Center Milestone Legend
+      // Center Milestone Legend & Column Toggle
       Row {
         anchors.centerIn: parent
         spacing: Style.space(8)
@@ -113,17 +167,121 @@ Item {
           Rectangle { width: 7; height: 7; radius: 3.5; color: "#dc2626"; border.color: "#fff"; border.width: 1; anchors.verticalCenter: parent.verticalCenter }
           Text { text: "Zero (~0)"; color: Color.muted; font.pixelSize: 8; font.family: Style.font.family; anchors.verticalCenter: parent.verticalCenter }
         }
+
+        // Clickable Option A Toggle
+        MouseArea {
+          width: colToggleRow.implicitWidth + 8
+          height: 14
+          anchors.verticalCenter: parent.verticalCenter
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.showChangeColumns = !root.showChangeColumns
+
+          Rectangle {
+            anchors.fill: parent
+            radius: 3
+            color: root.showChangeColumns ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+            border.color: root.showChangeColumns ? Qt.rgba(1, 1, 1, 0.2) : "transparent"
+            border.width: 1
+          }
+
+          Row {
+            id: colToggleRow
+            anchors.centerIn: parent
+            spacing: 3
+            Rectangle { width: 3; height: 8; radius: 1; color: "#4ade80"; anchors.verticalCenter: parent.verticalCenter }
+            Rectangle { width: 3; height: 8; radius: 1; color: "#f87171"; anchors.verticalCenter: parent.verticalCenter }
+            Text {
+              text: root.showChangeColumns ? "Δ Columns: ON" : "Δ Columns: OFF"
+              color: root.showChangeColumns ? Color.foreground : Color.muted
+              font.pixelSize: 8
+              font.family: Style.font.family
+              anchors.verticalCenter: parent.verticalCenter
+            }
+          }
+        }
       }
 
-      Text {
+      // Right: Active Year & Live Reduction / Growth Info
+      Row {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        text: root.isHovered && root.hoveredYear > 0
-          ? ("Yr " + root.hoveredYear + ": " + root.formatPop(root.hoveredPop))
-          : ("Hover / Drag to Scrub Timeline (" + root.startYear + "–" + root.endYear + ")")
-        color: root.isHovered ? Color.foreground : Color.muted
-        font.family: Style.font.family
-        font.pixelSize: 8
+        spacing: Style.space(5)
+
+        // Year & Population
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.activeRate ? ("Yr " + root.activeRate.year + ": " + root.formatPop(root.activeRate.pop)) : ("Yr " + root.selectedYear)
+          color: Color.foreground
+          font.family: Style.font.family
+          font.pixelSize: 8
+          font.bold: true
+        }
+
+        // Live Rate Pill (Growth / Reduction)
+        Rectangle {
+          anchors.verticalCenter: parent.verticalCenter
+          visible: root.activeRate !== null
+          height: Style.space(14)
+          width: rateBadgeText.implicitWidth + Style.space(8)
+          radius: 3
+          color: {
+            if (!root.activeRate) return "transparent"
+            if (Math.abs(root.activeRate.netAnnual) < 0.005) return Qt.rgba(0.98, 0.75, 0.14, 0.15)
+            if (root.activeRate.netAnnual < 0) return Qt.rgba(0.97, 0.44, 0.44, 0.15)
+            return Qt.rgba(0.29, 0.87, 0.50, 0.15)
+          }
+          border.color: {
+            if (!root.activeRate) return "transparent"
+            if (Math.abs(root.activeRate.netAnnual) < 0.005) return Qt.rgba(0.98, 0.75, 0.14, 0.4)
+            if (root.activeRate.netAnnual < 0) return Qt.rgba(0.97, 0.44, 0.44, 0.4)
+            return Qt.rgba(0.29, 0.87, 0.50, 0.4)
+          }
+          border.width: 1
+
+          Text {
+            id: rateBadgeText
+            anchors.centerIn: parent
+            textFormat: Text.PlainText
+            font.family: Style.font.family
+            font.pixelSize: 8
+            font.bold: true
+            color: {
+              if (!root.activeRate) return Color.muted
+              if (Math.abs(root.activeRate.netAnnual) < 0.005) return "#fbbf24"
+              if (root.activeRate.netAnnual < 0) return "#f87171"
+              return "#4ade80"
+            }
+            text: {
+              if (!root.activeRate) return ""
+              if (Math.abs(root.activeRate.netAnnual) < 0.005) {
+                return (root.countryData && root.activeRate.year === root.countryData.peakYear) ? "⏸ Peak Crest" : "⏸ 0/yr (0.00%)"
+              }
+              var arrow = root.activeRate.netAnnual < 0 ? "🔻 " : "🔺 +"
+              var sign = root.activeRate.netAnnual < 0 ? "" : "+"
+              var netStr = Math.abs(root.activeRate.netAnnual) < 1.0
+                ? Math.round(root.activeRate.netAnnual * 1000) + "k/yr"
+                : root.activeRate.netAnnual.toFixed(2) + "M/yr"
+              return arrow + netStr + " (" + sign + root.activeRate.pctAnnual.toFixed(2) + "%/yr)"
+            }
+          }
+        }
+
+        // Delta vs 2026 Anchor
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          visible: root.activeRate !== null && root.activeRate.year !== 2026
+          font.family: Style.font.family
+          font.pixelSize: 7
+          color: Color.muted
+          textFormat: Text.PlainText
+          text: {
+            if (!root.activeRate || root.activeRate.year === 2026) return ""
+            var d = root.activeRate.delta2026
+            var s = d > 0 ? "+" : ""
+            var str = Math.abs(d) < 1.0 ? Math.round(d * 1000) + "k" : d.toFixed(1) + "M"
+            return "[" + s + str + " vs '26]"
+          }
+        }
       }
     }
 
@@ -271,6 +429,56 @@ Item {
             }
             ctx.fillStyle = fGrad
             ctx.fill()
+          }
+
+          // Option A: Net Change Columns (Growth vs Reduction Bars)
+          if (root.showChangeColumns) {
+            var maxRate = 0.001
+            var colRates = []
+            for (var ri = 0; ri < root.trajectory.length; ri++) {
+              var rCur = root.trajectory[ri]
+              var rPrev = ri > 0 ? root.trajectory[ri - 1] : rCur
+              var rNext = ri < root.trajectory.length - 1 ? root.trajectory[ri + 1] : rCur
+              var rdt = 0, rdp = 0
+              if (ri > 0) {
+                rdt = rCur.year - rPrev.year
+                rdp = rCur.pop - rPrev.pop
+              } else {
+                rdt = rNext.year - rCur.year
+                rdp = rNext.pop - rCur.pop
+              }
+              var rNet = rdt !== 0 ? (rdp / rdt) : 0.0
+              colRates.push({ year: rCur.year, rate: rNet })
+              if (Math.abs(rNet) > maxRate) maxRate = Math.abs(rNet)
+            }
+
+            var colMaxHeight = 24.0
+            var baseY = marginT + plotH
+            for (var ci = 0; ci < colRates.length; ci++) {
+              var cItem = colRates[ci]
+              var cx = root.getX(cItem.year, plotW, marginL)
+              var barH = Math.max(1.5, (Math.abs(cItem.rate) / maxRate) * colMaxHeight)
+              var isGrowing = cItem.rate > 0.005
+              var isDeclining = cItem.rate < -0.005
+              var isPeak = !isGrowing && !isDeclining
+
+              var isActive = (cItem.year === root.activeYear)
+              var colW = Math.max(2.5, Math.min(5.0, (plotW / colRates.length) * 0.70))
+
+              ctx.fillStyle = isPeak
+                ? (isActive ? "#fbbf24" : "rgba(251, 191, 36, 0.45)")
+                : isGrowing
+                  ? (isActive ? "#4ade80" : "rgba(74, 222, 128, 0.40)")
+                  : (isActive ? "#f87171" : "rgba(248, 113, 113, 0.40)")
+
+              ctx.fillRect(cx - colW / 2, baseY - barH, colW, barH)
+
+              if (isActive) {
+                ctx.strokeStyle = "#ffffff"
+                ctx.lineWidth = 1
+                ctx.strokeRect(cx - colW / 2, baseY - barH, colW, barH)
+              }
+            }
           }
 
           // 4. Draw Historical Curve

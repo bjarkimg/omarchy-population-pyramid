@@ -223,6 +223,7 @@ BarWidget {
     function toggle(): void { root.toggle() }
     function next(): void { root.stepYear(1) }
     function prev(): void { root.stepYear(-1) }
+    function setYear(yr: string): void { root.selectedYear = yr }
     function lock(code: string): void { root.lockCountry(code) }
     function unlock(): void { root.countryLocked = false }
   }
