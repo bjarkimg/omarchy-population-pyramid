@@ -23,8 +23,23 @@ An interactive demographic analysis, population decline tracker, and vertical ag
   - **Sub-Replacement (TFR < 2.1):** Historical curve (1950–2026) followed by post-peak decline to **Zero / Extinction Horizon**.
   - **Above-Replacement (TFR ≥ 2.1):** Forward 100-year expansion trajectory to 2126.
   - Milestone markers for Peak Year, 2026 Current Year, Halving Year ($T_{1/2}$), and Zero Year ($\sim 0$).
+  - **Live Reduction & Growth Stats:** Displays real-time annual rate of change (e.g. `▼ -245k/yr (-0.67%/yr)`) alongside cumulative delta compared to the 2026 baseline.
+  - **Net Change Columns (Δ Columns):** Interactive column bars visualizing annual population gains (green) and declines (red), toggleable via the on-chart header button.
 - **Interactive Scrubber:** Scrub across the line chart to update demographic charts in real time.
 - **Flag hover / lock:** Hover a country flag to preview its pyramid and trajectory. Click to lock that country; click the locked flag again to return to hover mode.
+
+## Installation
+
+```bash
+# Install via Omarchy CLI
+omarchy plugin add https://github.com/bjarkimg/omarchy-population-pyramid --enable
+
+# Update if already installed
+omarchy plugin update bmg.population-pyramid
+
+# Remove
+omarchy plugin remove bmg.population-pyramid
+```
 
 ## Controls & Shortcuts
 
@@ -69,6 +84,12 @@ python3 scripts/build_data.py
 ## CLI & Shell IPC
 
 ```bash
+# Open dashboard
+omarchy-shell bmg.population-pyramid open
+
+# Close dashboard
+omarchy-shell bmg.population-pyramid close
+
 # Toggle dashboard
 omarchy-shell shell toggle bmg.population-pyramid
 ```
