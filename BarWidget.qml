@@ -18,6 +18,8 @@ BarWidget {
   property bool isPlaying: false
   property string searchQuery: ""
   property bool showingSearchList: false
+  // Hover previews a country; click pins it until the same flag is clicked again.
+  property bool countryLocked: false
 
   readonly property var countryList: {
     if (!dataset || !dataset.countries) return []
@@ -149,11 +151,47 @@ BarWidget {
     isPlaying = !isPlaying
   }
 
-  function selectCountry(code) {
+  function applyYearForCountry(code) {
+    var country = (dataset && dataset.countries) ? dataset.countries[code] : null
+    var years = (country && country.trajectoryYears && country.trajectoryYears.length > 0)
+      ? country.trajectoryYears
+      : pyramidYearsList
+    var yr = parseInt(selectedYear, 10)
+    if (!years || years.indexOf(yr) < 0) {
+      selectedYear = String(currentYear)
+    }
+  }
+
+  function applyDisplayedCountry(code) {
+    if (!code || selectedCountryCode === code)
+      return
     selectedCountryCode = code
+    applyYearForCountry(code)
+  }
+
+  function previewCountry(code) {
+    if (countryLocked)
+      return
+    applyDisplayedCountry(code)
+  }
+
+  function lockCountry(code) {
+    applyDisplayedCountry(code)
+    countryLocked = true
     showingSearchList = false
     searchQuery = ""
-    selectedYear = String(currentYear)
+  }
+
+  function toggleCountryLock(code) {
+    if (countryLocked && selectedCountryCode === code) {
+      countryLocked = false
+      return
+    }
+    lockCountry(code)
+  }
+
+  function selectCountry(code) {
+    lockCountry(code)
   }
 
   FileView {
@@ -185,6 +223,8 @@ BarWidget {
     function toggle(): void { root.toggle() }
     function next(): void { root.stepYear(1) }
     function prev(): void { root.stepYear(-1) }
+    function lock(code: string): void { root.lockCountry(code) }
+    function unlock(): void { root.countryLocked = false }
   }
 
   implicitWidth: button.implicitWidth
@@ -254,6 +294,7 @@ BarWidget {
         // 1. TOP ROW: Left Pyramid & Stats (560px) + Right Boxed Flags (290px)
         // =====================================================================
         Row {
+          id: topRow
           width: parent.width
           spacing: Style.space(10)
 
@@ -262,7 +303,7 @@ BarWidget {
           // -------------------------------------------------------------------
           Column {
             id: topLeftColumn
-            width: Style.space(560)
+            width: Style.space(470)
             spacing: Style.space(8)
 
             // Header Bar with Country Title
@@ -273,8 +314,9 @@ BarWidget {
               Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.PlainText
                 text: root.currentCountry
-                  ? (root.currentCountry.flag + " " + root.currentCountry.name.toUpperCase() + " (" + root.currentCountry.code + ") DEMOGRAPHICS")
+                  ? (root.currentCountry.flag + (root.countryLocked ? " 🔒 " : " ") + root.currentCountry.name.toUpperCase() + " (" + root.currentCountry.code + ") DEMOGRAPHICS")
                   : "POPULATION & DECLINE TRACKER"
                 color: Color.accent
                 font.family: Style.font.family
@@ -449,11 +491,11 @@ BarWidget {
           }
 
           // -------------------------------------------------------------------
-          // TOP RIGHT: Boxed-In Flag Directory Card (Shrunk to 290px)
+          // TOP RIGHT: Boxed-In Flag Directory Card
           // -------------------------------------------------------------------
           Rectangle {
             id: topRightBox
-            width: Style.space(290)
+            width: Math.max(Style.space(280), topRow.width - topLeftColumn.width - topRow.spacing)
             height: topLeftColumn.implicitHeight
             color: Qt.rgba(0.08, 0.12, 0.18, 0.75)
             border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -474,7 +516,8 @@ BarWidget {
                 Text {
                   anchors.left: parent.left
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "🌍 DIRECTORY"
+                  textFormat: Text.PlainText
+                  text: root.countryLocked ? "🔒 DIRECTORY" : "🌍 DIRECTORY"
                   color: Color.accent
                   font.family: Style.font.family
                   font.pixelSize: Style.font.body
@@ -488,8 +531,9 @@ BarWidget {
 
                   Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "42 NATIONS"
-                    color: Color.muted
+                    textFormat: Text.PlainText
+                    text: root.countryLocked ? "LOCKED" : "HOVER"
+                    color: root.countryLocked ? Color.accent : Color.muted
                     font.family: Style.font.family
                     font.pixelSize: Style.font.caption
                     font.bold: true
@@ -534,25 +578,114 @@ BarWidget {
                 clip: true
 
                 Flickable {
+                  id: searchFlick
                   anchors.fill: parent
                   anchors.margins: Style.space(4)
                   contentHeight: searchListCol.implicitHeight
                   clip: true
+                  boundsBehavior: Flickable.StopAtBounds
+                  flickableDirection: Flickable.VerticalFlick
+
+                  Item {
+                    id: searchScrollTrack
+                    z: 10
+                    visible: searchFlick.contentHeight > searchFlick.height
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: Style.space(4)
+
+                    Rectangle {
+                      anchors.fill: parent
+                      color: Qt.rgba(1, 1, 1, 0.08)
+                      radius: 2
+                    }
+
+                    Rectangle {
+                      id: searchScrollThumb
+                      width: parent.width
+                      height: Math.max(16, (searchFlick.height / Math.max(1, searchFlick.contentHeight)) * parent.height)
+                      y: {
+                        var range = searchScrollTrack.height - height
+                        var contentRange = searchFlick.contentHeight - searchFlick.height
+                        if (contentRange <= 0 || range <= 0) return 0
+                        return Math.max(0, Math.min(range, (searchFlick.contentY / contentRange) * range))
+                      }
+                      color: searchThumbMouse.containsMouse || searchThumbMouse.pressed ? Color.accent : Qt.rgba(0.95, 0.65, 0.35, 0.45)
+                      radius: 2
+
+                      Behavior on color { ColorAnimation { duration: 100 } }
+                    }
+
+                    MouseArea {
+                      id: searchThumbMouse
+                      anchors.fill: parent
+                      hoverEnabled: true
+                      cursorShape: Qt.PointingHandCursor
+                      property real startY: 0
+                      property real startContentY: 0
+
+                      onPressed: function(mouse) {
+                        startY = mouse.y
+                        startContentY = searchFlick.contentY
+                        var range = searchScrollTrack.height - searchScrollThumb.height
+                        if (range > 0 && (mouse.y < searchScrollThumb.y || mouse.y > searchScrollThumb.y + searchScrollThumb.height)) {
+                          var targetY = Math.max(0, Math.min(range, mouse.y - searchScrollThumb.height / 2))
+                          searchFlick.contentY = (targetY / range) * (searchFlick.contentHeight - searchFlick.height)
+                          startContentY = searchFlick.contentY
+                        }
+                      }
+
+                      onPositionChanged: function(mouse) {
+                        if (pressed) {
+                          var range = searchScrollTrack.height - searchScrollThumb.height
+                          if (range > 0) {
+                            var delta = mouse.y - startY
+                            var contentRange = searchFlick.contentHeight - searchFlick.height
+                            var newContentY = startContentY + (delta / range) * contentRange
+                            searchFlick.contentY = Math.max(0, Math.min(contentRange, newContentY))
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  WheelHandler {
+                    onWheel: function(event) {
+                      var dy = event.angleDelta.y
+                      if (dy === 0) dy = event.pixelDelta.y
+                      var step = Math.round(dy * 0.5)
+                      var maxY = Math.max(0, searchFlick.contentHeight - searchFlick.height)
+                      searchFlick.contentY = Math.max(0, Math.min(maxY, searchFlick.contentY - step))
+                      event.accepted = true
+                    }
+                  }
 
                   Column {
                     id: searchListCol
-                    width: parent.width
+                    width: parent.width - (searchFlick.contentHeight > searchFlick.height ? Style.space(6) : 0)
                     spacing: 2
 
                     Repeater {
                       model: root.filteredCountries
-                      Button {
+                      CountryFlagButton {
                         width: parent.width
                         height: Style.space(22)
-                        text: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
+                        countryCode: modelData.code
+                        countryLabel: modelData.flag + " " + modelData.name + " (" + modelData.code + ")  ·  TFR " + modelData.tfr.toFixed(2)
                         bordered: false
-                        selected: modelData.code === root.selectedCountryCode
-                        onClicked: root.selectCountry(modelData.code)
+                        locked: root.countryLocked
+                        current: modelData.code === root.selectedCountryCode
+                        onPreviewRequested: function(code) { root.previewCountry(code) }
+                        onLockToggled: function(code) { root.toggleCountryLock(code) }
+                        onWheelScrolled: function(wheel) {
+                          var dy = wheel.angleDelta.y
+                          if (dy === 0) dy = wheel.pixelDelta.y
+                          var step = Math.round(dy * 0.5)
+                          var maxY = Math.max(0, searchFlick.contentHeight - searchFlick.height)
+                          searchFlick.contentY = Math.max(0, Math.min(maxY, searchFlick.contentY - step))
+                          wheel.accepted = true
+                        }
                       }
                     }
                   }
@@ -609,29 +742,120 @@ BarWidget {
 
                     // Vertical list of countries in this tier
                     Flickable {
+                      id: countryFlick
                       width: parent.width
                       height: parent.height - Style.space(30)
                       contentHeight: countryBtnCol.implicitHeight
                       clip: true
                       boundsBehavior: Flickable.StopAtBounds
+                      flickableDirection: Flickable.VerticalFlick
+
+                      // Custom interactive scroll track & thumb
+                      Item {
+                        id: scrollTrack
+                        z: 10
+                        visible: countryFlick.contentHeight > countryFlick.height
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: Style.space(4)
+
+                        // Subtle track background
+                        Rectangle {
+                          anchors.fill: parent
+                          color: Qt.rgba(1, 1, 1, 0.08)
+                          radius: 2
+                        }
+
+                        // Scroll thumb
+                        Rectangle {
+                          id: scrollThumb
+                          width: parent.width
+                          height: Math.max(24, (countryFlick.height / Math.max(1, countryFlick.contentHeight)) * parent.height)
+                          y: {
+                            var range = scrollTrack.height - height
+                            var contentRange = countryFlick.contentHeight - countryFlick.height
+                            if (contentRange <= 0 || range <= 0) return 0
+                            return Math.max(0, Math.min(range, (countryFlick.contentY / contentRange) * range))
+                          }
+                          color: thumbMouse.containsMouse || thumbMouse.pressed ? Color.accent : Qt.rgba(0.95, 0.65, 0.35, 0.45)
+                          radius: 2
+
+                          Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        MouseArea {
+                          id: thumbMouse
+                          anchors.fill: parent
+                          hoverEnabled: true
+                          cursorShape: Qt.PointingHandCursor
+                          property real startY: 0
+                          property real startContentY: 0
+
+                          onPressed: function(mouse) {
+                            startY = mouse.y
+                            startContentY = countryFlick.contentY
+                            var range = scrollTrack.height - scrollThumb.height
+                            if (range > 0 && (mouse.y < scrollThumb.y || mouse.y > scrollThumb.y + scrollThumb.height)) {
+                              var targetY = Math.max(0, Math.min(range, mouse.y - scrollThumb.height / 2))
+                              countryFlick.contentY = (targetY / range) * (countryFlick.contentHeight - countryFlick.height)
+                              startContentY = countryFlick.contentY
+                            }
+                          }
+
+                          onPositionChanged: function(mouse) {
+                            if (pressed) {
+                              var range = scrollTrack.height - scrollThumb.height
+                              if (range > 0) {
+                                var delta = mouse.y - startY
+                                var contentRange = countryFlick.contentHeight - countryFlick.height
+                                var newContentY = startContentY + (delta / range) * contentRange
+                                countryFlick.contentY = Math.max(0, Math.min(contentRange, newContentY))
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                      WheelHandler {
+                        onWheel: function(event) {
+                          var dy = event.angleDelta.y
+                          if (dy === 0) dy = event.pixelDelta.y
+                          var step = Math.round(dy * 0.5)
+                          var maxY = Math.max(0, countryFlick.contentHeight - countryFlick.height)
+                          countryFlick.contentY = Math.max(0, Math.min(maxY, countryFlick.contentY - step))
+                          event.accepted = true
+                        }
+                      }
 
                       Column {
                         id: countryBtnCol
-                        width: parent.width
+                        width: parent.width - (countryFlick.contentHeight > countryFlick.height ? Style.space(6) : 0)
                         spacing: 2
 
                         Repeater {
                           model: tierColumn.tier.countries
 
-                          Button {
+                          CountryFlagButton {
                             width: parent.width
                             height: Style.space(20)
-                            text: modelData.label
+                            countryCode: modelData.code
+                            countryLabel: modelData.label
                             bordered: true
-                            selected: modelData.code === root.selectedCountryCode
                             fontSize: 8
-                            horizontalPadding: Style.space(2)
-                            onClicked: root.selectCountry(modelData.code)
+                            horizontalPadding: Style.space(4)
+                            locked: root.countryLocked
+                            current: modelData.code === root.selectedCountryCode
+                            onPreviewRequested: function(code) { root.previewCountry(code) }
+                            onLockToggled: function(code) { root.toggleCountryLock(code) }
+                            onWheelScrolled: function(wheel) {
+                              var dy = wheel.angleDelta.y
+                              if (dy === 0) dy = wheel.pixelDelta.y
+                              var step = Math.round(dy * 0.5)
+                              var maxY = Math.max(0, countryFlick.contentHeight - countryFlick.height)
+                              countryFlick.contentY = Math.max(0, Math.min(maxY, countryFlick.contentY - step))
+                              wheel.accepted = true
+                            }
                           }
                         }
                       }
@@ -670,7 +894,8 @@ BarWidget {
         // =====================================================================
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: "[Space] Play/Pause Animation  ·  [Hover Line Chart] Scrub Timeline (1950–" + (root.currentCountry ? (root.currentCountry.trajectoryEndYear || 2300) : "2300") + ")  ·  [Esc] Dismiss"
+          textFormat: Text.PlainText
+          text: "[Hover Flag] Preview  ·  [Click Flag] Lock / Unlock  ·  [Space] Play/Pause  ·  [Hover Chart] Scrub (1950–" + (root.currentCountry ? (root.currentCountry.trajectoryEndYear || 2300) : "2300") + ")  ·  [Esc] Dismiss"
           color: Color.muted
           font.family: Style.font.family
           font.pixelSize: 9

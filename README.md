@@ -23,11 +23,14 @@ An interactive demographic analysis, population decline tracker, and vertical ag
   - **Sub-Replacement (TFR < 2.1):** Historical curve (1950–2026) followed by post-peak decline to **Zero / Extinction Horizon**.
   - **Above-Replacement (TFR ≥ 2.1):** Forward 100-year expansion trajectory to 2126.
   - Milestone markers for Peak Year, 2026 Current Year, Halving Year ($T_{1/2}$), and Zero Year ($\sim 0$).
-- **Interactive Scrubber:** Scrub across the line chart or flag picker to update demographic charts in real time.
+- **Interactive Scrubber:** Scrub across the line chart to update demographic charts in real time.
+- **Flag hover / lock:** Hover a country flag to preview its pyramid and trajectory. Click to lock that country; click the locked flag again to return to hover mode.
 
 ## Controls & Shortcuts
 
 - **Click Bar Icon (`󰄹`):** Toggle dashboard.
+- **Hover Flag:** Preview that country's pyramid, stats, and trajectory (does nothing while locked).
+- **Click Flag:** Lock the hovered country so the dashboard stays on it. Click the locked flag again to unlock and return to hover-preview mode. Clicking a different flag while locked switches the lock to that country.
 - **`Space`:** Play / Pause timeline animation.
 - **`Left` / `Right` Arrow:** Step backward / forward one 5-year frame.
 - **`Esc`:** Dismiss dashboard.

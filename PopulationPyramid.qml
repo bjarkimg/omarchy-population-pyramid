@@ -150,7 +150,7 @@ Item {
 
           Text {
             anchors.left: parent.left
-            anchors.leftMargin: Style.space(2)
+            anchors.leftMargin: Style.space(4)
             anchors.verticalCenter: parent.verticalCenter
             text: rowItem.mVal.toFixed(1) + "%"
             color: rowItem.isHovered ? root.maleColor : Color.muted
@@ -262,6 +262,7 @@ Item {
         width: parent.width - Style.space(10)
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
+        textFormat: Text.PlainText
         text: {
           if (root.hoveredIndex >= 0) {
             var m = (root.maleData && root.maleData[root.hoveredIndex] !== undefined) ? root.maleData[root.hoveredIndex] : 0
@@ -283,7 +284,7 @@ Item {
         }
         color: root.hoveredIndex >= 0 ? Color.foreground : Color.muted
         font.family: Style.font.family
-        font.pixelSize: 10
+        font.pixelSize: 9
       }
     }
   }

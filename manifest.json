@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "bmg.population-pyramid",
   "name": "Demographics & Population Decline",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Bjarki Már",
   "license": "MIT",
   "description": "Interactive vertical population pyramid, 3 flag quick-picker rows, sub-replacement fertility decline tracking, and theoretical extinction horizon extrapolations per country.",
